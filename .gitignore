@@ -1,0 +1,28 @@
+# Maven
+target/
+
+# Java
+*.class
+*.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Local configuration / secrets
+application-local.yml
+application-local.properties
