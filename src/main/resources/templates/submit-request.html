@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lease Request Submission</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --error-bg: #451a1a;
+            --error-border: #991b1b;
+            --error-text: #fca5a5;
+            --success-bg: #064e3b;
+            --success-border: #047857;
+            --success-text: #6ee7b7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            padding: 1.75rem 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+        }
+
+        .header p {
+            color: #93c5fd;
+            font-size: 0.9rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-danger {
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+        }
+
+        .alert-success {
+            background-color: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success-text);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text-main);
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            background-color: #0f172a;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--primary);
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .file-preview {
+            margin-top: 1rem;
+            background-color: #0f172a;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+        }
+
+        .file-preview h4 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.6rem;
+            background-color: #1e293b;
+            border-radius: 4px;
+            margin-bottom: 0.4rem;
+            font-size: 0.88rem;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 320px;
+        }
+
+        .file-size {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.85rem;
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1.5rem;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .confirmation-card {
+            background-color: #0f172a;
+            border: 1px solid var(--success-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .confirmation-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge-status {
+            background-color: #047857;
+            color: #ecfdf5;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .doc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.88rem;
+        }
+
+        .doc-table th, .doc-table td {
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            background-color: #1e293b;
+        }
+
+        .new-submit-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .new-submit-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Lease Request Submission</h1>
+        <p>Submit your details and supporting documents for approval</p>
+    </div>
+
+    <div class="content">
+
+        <!-- Error Alert -->
+        <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert">
+            <span>&#9888;</span>
+            <span th:text="${errorMessage}">Validation Error</span>
+        </div>
+
+        <!-- Success Confirmation Card (US1 AC3) -->
+        <div th:if="${success}" class="confirmation-card" id="confirmation-section">
+            <div class="confirmation-header">
+                <span style="font-size: 1.5rem; color: #34d399;">&#10004;</span>
+                <div>
+                    <h3 style="color: #34d399; font-size: 1.2rem;">Request Submitted Successfully!</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        Unique Request ID: <strong th:text="${requestId}" style="color: #ffffff;">#101</strong>
+                    </p>
+                </div>
+                <span class="badge-status" th:text="${status}" style="margin-left: auto;">SUBMITTED</span>
+            </div>
+
+            <h4 style="font-size: 0.9rem; margin-top: 1.2rem; color: var(--text-main);">Attached Supporting Documents</h4>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${uploadedDocuments}">
+                        <td th:text="${doc.fileName}">document.pdf</td>
+                        <td th:text="${doc.fileType}">PDF</td>
+                        <td th:text="${doc.fileSize >= 1048576 ? #numbers.formatDecimal(doc.fileSize / 1048576.0, 1, 2) + ' MB' : #numbers.formatDecimal(doc.fileSize / 1024.0, 1, 2) + ' KB'}">1.2 MB</td>
+                        <td th:text="${doc.validationResult}" style="color: #34d399; font-weight: 600;">VALID</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <a href="/submit-request" class="new-submit-link">&larr; Submit Another Request</a>
+        </div>
+
+        <!-- Submission Form -->
+        <form th:unless="${success}" action="/submit-request" method="post" enctype="multipart/form-data" id="lease-request-form">
+
+            <div class="form-group">
+                <label for="requesterId">Requester Name / ID <span class="required">*</span></label>
+                <input type="text" id="requesterId" name="requesterId" th:value="${requesterId}" placeholder="e.g., Jane Doe (EMP-2026)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="leaseType">Lease Type <span class="required">*</span></label>
+                <select id="leaseType" name="leaseType" required>
+                    <option value="" disabled th:selected="${leaseType == null or leaseType == ''}">Select Lease Type</option>
+                    <option value="Commercial" th:selected="${leaseType == 'Commercial'}">Commercial Lease</option>
+                    <option value="Residential" th:selected="${leaseType == 'Residential'}">Residential Lease</option>
+                    <option value="Equipment" th:selected="${leaseType == 'Equipment'}">Equipment Lease</option>
+                    <option value="Industrial" th:selected="${leaseType == 'Industrial'}">Industrial Lease</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Supporting Documents (PDF, JPG, PNG ≤ 5MB) <span class="required">*</span></label>
+                <div class="file-upload-wrapper">
+                    <div class="upload-icon">&#128194;</div>
+                    <div class="upload-text">Click or drag & drop files here (ID, Agreement Draft, Financial Proof)</div>
+                    <input type="file" id="fileInput" name="files" accept=".pdf,.jpg,.jpeg,.png" multiple required onchange="updateFilePreview()">
+                </div>
+                <!-- File Listing Before Submission (US2 AC3) -->
+                <div id="filePreviewContainer" class="file-preview" style="display: none;">
+                    <h4>Selected Files (<span id="fileCount">0</span>)</h4>
+                    <div id="fileList"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Submit Lease Request</button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function updateFilePreview() {
+        const input = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('filePreviewContainer');
+        const fileList = document.getElementById('fileList');
+        const fileCount = document.getElementById('fileCount');
+
+        fileList.innerHTML = '';
+
+        if (input.files && input.files.length > 0) {
+            fileCount.textContent = input.files.length;
+            previewContainer.style.display = 'block';
+
+            Array.from(input.files).forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'file-name';
+                nameSpan.textContent = file.name;
+
+                const sizeSpan = document.createElement('span');
+                sizeSpan.className = 'file-size';
+                sizeSpan.textContent = formatBytes(file.size);
+
+                item.appendChild(nameSpan);
+                item.appendChild(sizeSpan);
+                fileList.appendChild(item);
+            });
+        } else {
+            previewContainer.style.display = 'none';
+        }
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+</script>
+
+</body>
+</html>
