@@ -48,4 +48,58 @@ public class LeaseRequestWebController {
         }
         return "submit-request";
     }
+
+    @GetMapping("/reviewer-queue")
+    public String showReviewerQueue(
+            @RequestParam(value = "status", required = false) String statusFilter,
+            Model model) {
+        List<LeaseRequestResponseDto> queue = leaseRequestService.getReviewerQueue(statusFilter);
+        model.addAttribute("requests", queue);
+        model.addAttribute("currentFilter", statusFilter != null ? statusFilter : "ALL_PENDING");
+        return "reviewer-queue";
+    }
+
+    @PostMapping("/reviewer/approve")
+    public String approveRequest(
+            @RequestParam("requestId") Long requestId,
+            @RequestParam(value = "reviewerId", defaultValue = "Reviewer-01") String reviewerId,
+            Model model) {
+        try {
+            leaseRequestService.approveRequest(requestId, reviewerId);
+            model.addAttribute("successMessage", "Request #" + requestId + " has been APPROVED.");
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+        return showReviewerQueue(null, model);
+    }
+
+    @PostMapping("/reviewer/reject")
+    public String rejectRequest(
+            @RequestParam("requestId") Long requestId,
+            @RequestParam(value = "reviewerId", defaultValue = "Reviewer-01") String reviewerId,
+            @RequestParam("comment") String comment,
+            Model model) {
+        try {
+            leaseRequestService.rejectRequest(requestId, reviewerId, comment);
+            model.addAttribute("successMessage", "Request #" + requestId + " has been REJECTED.");
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+        return showReviewerQueue(null, model);
+    }
+
+    @PostMapping("/reviewer/request-changes")
+    public String requestChanges(
+            @RequestParam("requestId") Long requestId,
+            @RequestParam(value = "reviewerId", defaultValue = "Reviewer-01") String reviewerId,
+            @RequestParam("comment") String comment,
+            Model model) {
+        try {
+            leaseRequestService.requestChanges(requestId, reviewerId, comment);
+            model.addAttribute("successMessage", "Changes requested for Request #" + requestId + ".");
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+        return showReviewerQueue(null, model);
+    }
 }
