@@ -3,6 +3,7 @@ package com.example.leaseworkflow.controller;
 import com.example.leaseworkflow.dto.DocumentDto;
 import com.example.leaseworkflow.dto.LeaseRequestResponseDto;
 import com.example.leaseworkflow.model.LeaseRequest;
+import com.example.leaseworkflow.model.StatusHistory;
 import com.example.leaseworkflow.service.LeaseRequestService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,12 @@ public class LeaseRequestController {
 
     public LeaseRequestController(LeaseRequestService leaseRequestService) {
         this.leaseRequestService = leaseRequestService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<LeaseRequestResponseDto>> getRequests(@RequestParam(value = "status", required = false) String status) {
+        List<LeaseRequestResponseDto> queue = leaseRequestService.getReviewerQueue(status);
+        return ResponseEntity.ok(queue);
     }
 
     @PostMapping
@@ -81,6 +88,59 @@ public class LeaseRequestController {
             error.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
+    }
+
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<?> approveRequest(
+            @PathVariable("id") Long id,
+            @RequestBody(required = false) Map<String, String> payload) {
+        try {
+            String reviewerId = (payload != null) ? payload.get("reviewerId") : "Reviewer";
+            LeaseRequestResponseDto response = leaseRequestService.approveRequest(id, reviewerId);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<?> rejectRequest(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, String> payload) {
+        try {
+            String reviewerId = (payload != null) ? payload.get("reviewerId") : "Reviewer";
+            String comment = (payload != null) ? payload.get("comment") : null;
+            LeaseRequestResponseDto response = leaseRequestService.rejectRequest(id, reviewerId, comment);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @PostMapping("/{id}/request-changes")
+    public ResponseEntity<?> requestChanges(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, String> payload) {
+        try {
+            String reviewerId = (payload != null) ? payload.get("reviewerId") : "Reviewer";
+            String comment = (payload != null) ? payload.get("comment") : null;
+            LeaseRequestResponseDto response = leaseRequestService.requestChanges(id, reviewerId, comment);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @GetMapping("/{id}/history")
+    public ResponseEntity<List<StatusHistory>> getStatusHistory(@PathVariable("id") Long id) {
+        List<StatusHistory> history = leaseRequestService.getStatusHistory(id);
+        return ResponseEntity.ok(history);
     }
 
     @GetMapping("/{id}")
