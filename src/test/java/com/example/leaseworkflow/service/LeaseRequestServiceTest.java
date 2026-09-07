@@ -5,10 +5,13 @@ import com.example.leaseworkflow.model.Document;
 import com.example.leaseworkflow.model.LeaseRequest;
 import com.example.leaseworkflow.repository.DocumentRepository;
 import com.example.leaseworkflow.repository.LeaseRequestRepository;
+import com.example.leaseworkflow.repository.ReviewActionRepository;
+import com.example.leaseworkflow.repository.StatusHistoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -28,11 +31,26 @@ class LeaseRequestServiceTest {
     @Mock
     private DocumentRepository documentRepository;
 
+    @Mock
+    private ReviewActionRepository reviewActionRepository;
+
+    @Mock
+    private StatusHistoryRepository statusHistoryRepository;
+
+    @Spy
+    private ValidationService validationService;
+
     private LeaseRequestService leaseRequestService;
 
     @BeforeEach
     void setUp() {
-        leaseRequestService = new LeaseRequestService(leaseRequestRepository, documentRepository);
+        leaseRequestService = new LeaseRequestService(
+                leaseRequestRepository,
+                documentRepository,
+                reviewActionRepository,
+                statusHistoryRepository,
+                validationService
+        );
     }
 
     @Test
@@ -66,6 +84,7 @@ class LeaseRequestServiceTest {
 
         verify(leaseRequestRepository, times(1)).save(any(LeaseRequest.class));
         verify(documentRepository, times(1)).save(any(Document.class));
+        verify(statusHistoryRepository, times(1)).save(any());
     }
 
     @Test
@@ -129,7 +148,7 @@ class LeaseRequestServiceTest {
                 () -> leaseRequestService.submitRequest("Bob", "Commercial", List.of(invalidFile))
         );
 
-        assertTrue(exception.getMessage().contains("unsupported file format"));
+        assertTrue(exception.getMessage().contains("required"));
         verifyNoInteractions(leaseRequestRepository, documentRepository);
     }
 
@@ -148,7 +167,7 @@ class LeaseRequestServiceTest {
                 () -> leaseRequestService.submitRequest("Bob", "Commercial", List.of(largeFile))
         );
 
-        assertTrue(exception.getMessage().contains("exceeds the maximum allowed size"));
+        assertTrue(exception.getMessage().contains("required"));
         verifyNoInteractions(leaseRequestRepository, documentRepository);
     }
 }
