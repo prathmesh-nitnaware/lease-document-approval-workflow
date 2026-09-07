@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track My Request - Lease Approval</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #d97706;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); padding: 2rem 1rem; }
+        .container { max-width: 750px; margin: 0 auto; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); padding: 1.5rem 2rem; }
+        .header h1 { font-size: 1.5rem; color: white; }
+        .content { padding: 2rem; }
+
+        .status-box { background: #0f172a; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .badge { padding: 0.3rem 0.6rem; border-radius: 4px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; }
+        .badge-SUBMITTED { background: #1e40af; color: #dbeafe; }
+        .badge-APPROVED { background: #065f46; color: #d1fae5; }
+        .badge-REJECTED { background: #991b1b; color: #fee2e2; }
+        .badge-CHANGES_REQUESTED { background: #7c2d12; color: #ffedd5; }
+
+        .section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; color: var(--text-main); }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .info-item span { display: block; color: var(--text-muted); font-size: 0.8rem; }
+
+        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
+        .doc-table th, .doc-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .doc-table th { background: #0f172a; color: var(--text-muted); }
+
+        .resubmit-card { background: #0f172a; border: 1px dashed var(--warning); padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; }
+        .btn-submit { background: var(--primary); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Track Lease Request Details</h1>
+    </div>
+
+    <div class="content">
+
+        <div class="status-box">
+            <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Current Request Status</div>
+                <div style="font-size: 1.2rem; font-weight: 700; margin-top: 0.25rem;">
+                    Request <span th:text="'#' + ${request.id}">#1</span>
+                </div>
+            </div>
+            <span th:class="'badge badge-' + ${request.status}" th:text="${request.status}">SUBMITTED</span>
+        </div>
+
+        <div class="section-title">Request Summary</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span>Requester Name / ID</span>
+                <strong th:text="${request.requesterId}">Jane Doe</strong>
+            </div>
+            <div class="info-item">
+                <span>Lease Type</span>
+                <strong th:text="${request.leaseType}">Commercial</strong>
+            </div>
+            <div class="info-item">
+                <span>Submitted Date</span>
+                <strong th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-09-07</strong>
+            </div>
+        </div>
+
+        <div class="section-title">Uploaded Supporting Documents</div>
+        <table class="doc-table">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Validation Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="doc : ${request.documents}">
+                    <td th:text="${doc.fileName}">document.pdf</td>
+                    <td th:text="${doc.fileType}">PDF</td>
+                    <td th:text="${doc.fileSize >= 1048576 ? #numbers.formatDecimal(doc.fileSize / 1048576.0, 1, 2) + ' MB' : #numbers.formatDecimal(doc.fileSize / 1024.0, 1, 2) + ' KB'}">1.2 MB</td>
+                    <td th:text="${doc.validationResult}" th:style="${#strings.startsWith(doc.validationResult, 'VALID') ? 'color: #34d399;' : 'color: #fca5a5;'}">VALID</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Resubmit Card for CHANGES_REQUESTED -->
+        <div th:if="${request.status == 'CHANGES_REQUESTED'}" class="resubmit-card">
+            <h3 style="color: var(--warning); margin-bottom: 0.5rem;">Action Required: Resubmit Request</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+                The reviewer has requested changes or updated paperwork. Please attach the revised files below to return your request to the reviewer queue.
+            </p>
+            <form th:action="'/track-request/' + ${request.id} + '/resubmit'" method="post" enctype="multipart/form-data">
+                <input type="file" name="files" accept=".pdf,.jpg,.jpeg,.png" multiple required style="margin-bottom: 1rem; display: block; color: white;">
+                <button type="submit" class="btn-submit">Resubmit Request &amp; Files</button>
+            </form>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a href="/submit-request" style="color: var(--primary); text-decoration: none;">&larr; Return to Submission Form</a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

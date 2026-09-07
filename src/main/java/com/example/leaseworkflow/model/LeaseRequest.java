@@ -7,6 +7,15 @@ import java.time.LocalDateTime;
 @Table(name = "lease_requests")
 public class LeaseRequest {
 
+    // Requester status constants & validation state trackers
+    public static final String STATE_SUBMITTED = "SUBMITTED";
+    public static final String STATE_DRAFT = "DRAFT";
+    public static final String STATE_CHANGES_REQUESTED = "CHANGES_REQUESTED";
+
+    public boolean isResubmittable() {
+        return STATE_CHANGES_REQUESTED.equalsIgnoreCase(this.status);
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

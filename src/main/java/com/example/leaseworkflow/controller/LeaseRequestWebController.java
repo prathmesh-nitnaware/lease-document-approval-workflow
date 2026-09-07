@@ -5,6 +5,7 @@ import com.example.leaseworkflow.service.LeaseRequestService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,5 +48,31 @@ public class LeaseRequestWebController {
             model.addAttribute("errorMessage", e.getMessage());
         }
         return "submit-request";
+    }
+
+    @GetMapping("/track-request/{id}")
+    public String trackRequest(@PathVariable("id") Long id, Model model) {
+        return leaseRequestService.getRequestById(id)
+                .map(req -> {
+                    model.addAttribute("request", req);
+                    return "track-request";
+                })
+                .orElse("redirect:/submit-request");
+    }
+
+    @PostMapping("/track-request/{id}/resubmit")
+    public String resubmitRequest(
+            @PathVariable("id") Long id,
+            @RequestParam("files") List<MultipartFile> files,
+            Model model) {
+        try {
+            LeaseRequestResponseDto response = leaseRequestService.resubmitRequest(id, files);
+            model.addAttribute("request", response);
+            model.addAttribute("successMessage", "Request #" + id + " has been resubmitted to SUBMITTED status.");
+            return "track-request";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return trackRequest(id, model);
+        }
     }
 }
