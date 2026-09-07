@@ -7,6 +7,12 @@ import java.time.LocalDateTime;
 @Table(name = "lease_requests")
 public class LeaseRequest {
 
+    public static final String STATUS_SUBMITTED = "SUBMITTED";
+    public static final String STATUS_UNDER_REVIEW = "UNDER_REVIEW";
+    public static final String STATUS_APPROVED = "APPROVED";
+    public static final String STATUS_REJECTED = "REJECTED";
+    public static final String STATUS_CHANGES_REQUESTED = "CHANGES_REQUESTED";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -41,7 +47,7 @@ public class LeaseRequest {
         this.createdAt = now;
         this.updatedAt = now;
         if (this.status == null) {
-            this.status = "SUBMITTED";
+            this.status = STATUS_SUBMITTED;
         }
     }
 
