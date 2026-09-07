@@ -46,7 +46,7 @@ public class LeaseRequestService {
                 }
                 Document document = new Document();
                 document.setRequestId(savedRequest.getId());
-                document.setFileName(file.getOriginalFilename());
+                document.setFileName(sanitizeFileName(file.getOriginalFilename()));
                 document.setFileType(getFileExtensionOrContentType(file));
                 document.setFileSize(file.getSize());
                 document.setValidationResult("VALID");
@@ -99,7 +99,7 @@ public class LeaseRequestService {
             }
             Document document = new Document();
             document.setRequestId(requestId);
-            document.setFileName(file.getOriginalFilename());
+            document.setFileName(sanitizeFileName(file.getOriginalFilename()));
             document.setFileType(getFileExtensionOrContentType(file));
             document.setFileSize(file.getSize());
             document.setValidationResult("VALID");
@@ -176,28 +176,35 @@ public class LeaseRequestService {
 
     private boolean isValidFileType(String fileName, String contentType) {
         if (fileName != null) {
-            String lowerName = fileName.toLowerCase();
+            String lowerName = fileName.trim().toLowerCase();
             if (lowerName.endsWith(".pdf") || lowerName.endsWith(".jpg") ||
                 lowerName.endsWith(".jpeg") || lowerName.endsWith(".png")) {
                 return true;
             }
         }
         if (contentType != null) {
-            String lowerType = contentType.toLowerCase();
-            if (lowerType.contains("pdf") || lowerType.contains("jpeg") || lowerType.contains("png")) {
+            String lowerType = contentType.trim().toLowerCase();
+            if (lowerType.contains("pdf") || lowerType.contains("jpeg") || lowerType.contains("jpg") || lowerType.contains("png")) {
                 return true;
             }
         }
         return false;
     }
 
+    private String sanitizeFileName(String originalFileName) {
+        if (originalFileName == null || originalFileName.trim().isEmpty()) {
+            return "unnamed_document";
+        }
+        return originalFileName.trim();
+    }
+
     private String getFileExtensionOrContentType(MultipartFile file) {
         String fileName = file.getOriginalFilename();
         if (fileName != null && fileName.contains(".")) {
-            return fileName.substring(fileName.lastIndexOf('.') + 1).toUpperCase();
+            return fileName.substring(fileName.lastIndexOf('.') + 1).toUpperCase().trim();
         }
         if (file.getContentType() != null) {
-            return file.getContentType();
+            return file.getContentType().trim();
         }
         return "UNKNOWN";
     }
