@@ -13,6 +13,10 @@ public class LeaseRequest {
     public static final String STATUS_REJECTED = "REJECTED";
     public static final String STATUS_CHANGES_REQUESTED = "CHANGES_REQUESTED";
 
+    public boolean isResubmittable() {
+        return STATUS_CHANGES_REQUESTED.equalsIgnoreCase(this.status);
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

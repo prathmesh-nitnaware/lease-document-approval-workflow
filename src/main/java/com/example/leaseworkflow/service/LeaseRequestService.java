@@ -21,27 +21,60 @@ import java.util.Optional;
 @Service
 public class LeaseRequestService {
 
-    private static final long MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
     private final LeaseRequestRepository leaseRequestRepository;
     private final DocumentRepository documentRepository;
     private final ReviewActionRepository reviewActionRepository;
     private final StatusHistoryRepository statusHistoryRepository;
+    private final ValidationService validationService;
 
     public LeaseRequestService(
             LeaseRequestRepository leaseRequestRepository,
             DocumentRepository documentRepository,
             ReviewActionRepository reviewActionRepository,
-            StatusHistoryRepository statusHistoryRepository) {
+            StatusHistoryRepository statusHistoryRepository,
+            ValidationService validationService) {
         this.leaseRequestRepository = leaseRequestRepository;
         this.documentRepository = documentRepository;
         this.reviewActionRepository = reviewActionRepository;
         this.statusHistoryRepository = statusHistoryRepository;
+        this.validationService = validationService;
     }
 
     @Transactional
     public LeaseRequestResponseDto submitRequest(String requesterId, String leaseType, List<MultipartFile> files) {
-        validateMetadata(requesterId, leaseType);
-        validateFiles(files);
+        ValidationService.ValidationResult metaVal = validationService.validateMetadata(requesterId, leaseType);
+        if (!metaVal.isValid()) {
+            throw new IllegalArgumentException(metaVal.getReason());
+        }
+
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("At least one document is mandatory to submit.");
+        }
+
+        List<Document> docsToSave = new ArrayList<>();
+        boolean hasValidDocument = false;
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+
+            ValidationService.ValidationResult docVal = validationService.validateDocument(file);
+            Document document = new Document();
+            document.setFileName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : "unnamed");
+            document.setFileType(getFileExtensionOrContentType(file));
+            document.setFileSize(file.getSize());
+
+            if (docVal.isValid()) {
+                document.setValidationResult("VALID");
+                hasValidDocument = true;
+            } else {
+                document.setValidationResult("INVALID: " + docVal.getReason());
+            }
+            docsToSave.add(document);
+        }
+
+        if (!hasValidDocument) {
+            throw new IllegalArgumentException("At least one valid document (PDF, JPG, PNG <= 5MB) is required.");
+        }
 
         LeaseRequest leaseRequest = new LeaseRequest();
         leaseRequest.setRequesterId(requesterId.trim());
@@ -50,7 +83,7 @@ public class LeaseRequestService {
 
         LeaseRequest savedRequest = leaseRequestRepository.save(leaseRequest);
 
-        // US9 Audit Trail: Record initial submission transition
+        // US9 Audit Trail: Append initial transition
         statusHistoryRepository.save(new StatusHistory(
                 savedRequest.getId(),
                 null,
@@ -59,72 +92,45 @@ public class LeaseRequestService {
         ));
 
         List<DocumentDto> documentDtos = new ArrayList<>();
-        if (files != null) {
-            for (MultipartFile file : files) {
-                if (file.isEmpty()) {
-                    continue;
-                }
-                Document document = new Document();
-                document.setRequestId(savedRequest.getId());
-                document.setFileName(sanitizeFileName(file.getOriginalFilename()));
-                document.setFileType(getFileExtensionOrContentType(file));
-                document.setFileSize(file.getSize());
-                document.setValidationResult("VALID");
-
-                Document savedDoc = documentRepository.save(document);
-                documentDtos.add(new DocumentDto(
-                        savedDoc.getId(),
-                        savedDoc.getFileName(),
-                        savedDoc.getFileType(),
-                        savedDoc.getFileSize(),
-                        savedDoc.getValidationResult()
-                ));
-            }
+        for (Document doc : docsToSave) {
+            doc.setRequestId(savedRequest.getId());
+            Document savedDoc = documentRepository.save(doc);
+            documentDtos.add(new DocumentDto(
+                    savedDoc.getId(),
+                    savedDoc.getFileName(),
+                    savedDoc.getFileType(),
+                    savedDoc.getFileSize(),
+                    savedDoc.getValidationResult()
+            ));
         }
 
-        return new LeaseRequestResponseDto(
-                savedRequest.getId(),
-                savedRequest.getRequesterId(),
-                savedRequest.getLeaseType(),
-                savedRequest.getStatus(),
-                savedRequest.getCreatedAt(),
-                documentDtos
-        );
+        return buildResponseDto(savedRequest, documentDtos);
     }
 
     @Transactional
-    public LeaseRequest createRequestOnly(String requesterId, String leaseType) {
-        validateMetadata(requesterId, leaseType);
+    public LeaseRequestResponseDto resubmitRequest(Long id, List<MultipartFile> files) {
+        LeaseRequest request = getExistingRequest(id);
 
-        LeaseRequest leaseRequest = new LeaseRequest();
-        leaseRequest.setRequesterId(requesterId.trim());
-        leaseRequest.setLeaseType(leaseType.trim());
-        leaseRequest.setStatus(LeaseRequest.STATUS_SUBMITTED);
-
-        LeaseRequest saved = leaseRequestRepository.save(leaseRequest);
-        statusHistoryRepository.save(new StatusHistory(saved.getId(), null, LeaseRequest.STATUS_SUBMITTED, saved.getRequesterId()));
-        return saved;
-    }
-
-    @Transactional
-    public List<DocumentDto> addDocumentsToRequest(Long requestId, List<MultipartFile> files) {
-        Optional<LeaseRequest> leaseRequestOpt = leaseRequestRepository.findById(requestId);
-        if (leaseRequestOpt.isEmpty()) {
-            throw new IllegalArgumentException("Lease request with ID " + requestId + " not found.");
+        if (!request.isResubmittable() && !LeaseRequest.STATUS_CHANGES_REQUESTED.equalsIgnoreCase(request.getStatus())) {
+            throw new IllegalArgumentException("Request #" + id + " is not in CHANGES_REQUESTED status and cannot be resubmitted.");
         }
-        validateFiles(files);
+
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("At least one updated document is required to resubmit.");
+        }
+
+        String oldStatus = request.getStatus();
 
         List<DocumentDto> documentDtos = new ArrayList<>();
         for (MultipartFile file : files) {
-            if (file.isEmpty()) {
-                continue;
-            }
+            if (file.isEmpty()) continue;
+            ValidationService.ValidationResult docVal = validationService.validateDocument(file);
             Document document = new Document();
-            document.setRequestId(requestId);
-            document.setFileName(sanitizeFileName(file.getOriginalFilename()));
+            document.setRequestId(id);
+            document.setFileName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : "unnamed");
             document.setFileType(getFileExtensionOrContentType(file));
             document.setFileSize(file.getSize());
-            document.setValidationResult("VALID");
+            document.setValidationResult(docVal.isValid() ? "VALID" : "INVALID: " + docVal.getReason());
 
             Document savedDoc = documentRepository.save(document);
             documentDtos.add(new DocumentDto(
@@ -135,7 +141,14 @@ public class LeaseRequestService {
                     savedDoc.getValidationResult()
             ));
         }
-        return documentDtos;
+
+        request.setStatus(LeaseRequest.STATUS_SUBMITTED);
+        LeaseRequest saved = leaseRequestRepository.save(request);
+
+        // US9 Audit Trail: Record resubmission status transition
+        statusHistoryRepository.save(new StatusHistory(id, oldStatus, LeaseRequest.STATUS_SUBMITTED, saved.getRequesterId()));
+
+        return buildResponseDto(saved, documentDtos);
     }
 
     @Transactional
@@ -208,6 +221,53 @@ public class LeaseRequestService {
         return statusHistoryRepository.findByRequestIdOrderByChangedAtAsc(requestId);
     }
 
+    @Transactional
+    public LeaseRequest createRequestOnly(String requesterId, String leaseType) {
+        ValidationService.ValidationResult metaVal = validationService.validateMetadata(requesterId, leaseType);
+        if (!metaVal.isValid()) {
+            throw new IllegalArgumentException(metaVal.getReason());
+        }
+
+        LeaseRequest leaseRequest = new LeaseRequest();
+        leaseRequest.setRequesterId(requesterId.trim());
+        leaseRequest.setLeaseType(leaseType.trim());
+        leaseRequest.setStatus(LeaseRequest.STATUS_SUBMITTED);
+
+        LeaseRequest saved = leaseRequestRepository.save(leaseRequest);
+        statusHistoryRepository.save(new StatusHistory(saved.getId(), null, LeaseRequest.STATUS_SUBMITTED, saved.getRequesterId()));
+        return saved;
+    }
+
+    @Transactional
+    public List<DocumentDto> addDocumentsToRequest(Long requestId, List<MultipartFile> files) {
+        Optional<LeaseRequest> leaseRequestOpt = leaseRequestRepository.findById(requestId);
+        if (leaseRequestOpt.isEmpty()) {
+            throw new IllegalArgumentException("Lease request with ID " + requestId + " not found.");
+        }
+
+        List<DocumentDto> documentDtos = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            ValidationService.ValidationResult docVal = validationService.validateDocument(file);
+            Document document = new Document();
+            document.setRequestId(requestId);
+            document.setFileName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : "unnamed");
+            document.setFileType(getFileExtensionOrContentType(file));
+            document.setFileSize(file.getSize());
+            document.setValidationResult(docVal.isValid() ? "VALID" : "INVALID: " + docVal.getReason());
+
+            Document savedDoc = documentRepository.save(document);
+            documentDtos.add(new DocumentDto(
+                    savedDoc.getId(),
+                    savedDoc.getFileName(),
+                    savedDoc.getFileType(),
+                    savedDoc.getFileSize(),
+                    savedDoc.getValidationResult()
+            ));
+        }
+        return documentDtos;
+    }
+
     public Optional<LeaseRequestResponseDto> getRequestById(Long id) {
         return leaseRequestRepository.findById(id).map(this::buildResponseDto);
     }
@@ -222,77 +282,18 @@ public class LeaseRequestService {
         List<DocumentDto> docDtos = docs.stream()
                 .map(d -> new DocumentDto(d.getId(), d.getFileName(), d.getFileType(), d.getFileSize(), d.getValidationResult()))
                 .toList();
+        return buildResponseDto(request, docDtos);
+    }
+
+    private LeaseRequestResponseDto buildResponseDto(LeaseRequest request, List<DocumentDto> documentDtos) {
         return new LeaseRequestResponseDto(
                 request.getId(),
                 request.getRequesterId(),
                 request.getLeaseType(),
                 request.getStatus(),
                 request.getCreatedAt(),
-                docDtos
+                documentDtos
         );
-    }
-
-    public void validateMetadata(String requesterId, String leaseType) {
-        if (requesterId == null || requesterId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Requester name/ID is mandatory.");
-        }
-        if (leaseType == null || leaseType.trim().isEmpty()) {
-            throw new IllegalArgumentException("Lease type is mandatory.");
-        }
-    }
-
-    public void validateFiles(List<MultipartFile> files) {
-        if (files == null || files.isEmpty()) {
-            throw new IllegalArgumentException("At least one document is mandatory to submit.");
-        }
-
-        boolean hasNonEmptyFile = false;
-        for (MultipartFile file : files) {
-            if (file.isEmpty()) {
-                continue;
-            }
-            hasNonEmptyFile = true;
-
-            if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-                throw new IllegalArgumentException("File '" + file.getOriginalFilename() +
-                        "' exceeds the maximum allowed size of 5 MB (" + file.getSize() + " bytes).");
-            }
-
-            String fileName = file.getOriginalFilename();
-            String contentType = file.getContentType();
-            if (!isValidFileType(fileName, contentType)) {
-                throw new IllegalArgumentException("File '" + fileName +
-                        "' is of an unsupported file format. Only PDF, JPG, and PNG files are allowed.");
-            }
-        }
-
-        if (!hasNonEmptyFile) {
-            throw new IllegalArgumentException("At least one non-empty document is mandatory to submit.");
-        }
-    }
-
-    private boolean isValidFileType(String fileName, String contentType) {
-        if (fileName != null) {
-            String lowerName = fileName.trim().toLowerCase();
-            if (lowerName.endsWith(".pdf") || lowerName.endsWith(".jpg") ||
-                lowerName.endsWith(".jpeg") || lowerName.endsWith(".png")) {
-                return true;
-            }
-        }
-        if (contentType != null) {
-            String lowerType = contentType.trim().toLowerCase();
-            if (lowerType.contains("pdf") || lowerType.contains("jpeg") || lowerType.contains("jpg") || lowerType.contains("png")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String sanitizeFileName(String originalFileName) {
-        if (originalFileName == null || originalFileName.trim().isEmpty()) {
-            return "unnamed_document";
-        }
-        return originalFileName.trim();
     }
 
     private String getFileExtensionOrContentType(MultipartFile file) {
