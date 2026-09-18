@@ -74,3 +74,5 @@ Main branches:
 
 main — stable code
 develop — integration/development branch
+
+Jenkins CI pipeline configured for automated build verification.
