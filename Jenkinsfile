@@ -33,7 +33,7 @@ pipeline {
           for /f "tokens=5" %%P in ('netstat -aon ^| findstr :%APP_PORT% ^| findstr LISTENING') do taskkill /PID %%P /F
 
           REM Prevent Jenkins from killing this process when the build step ends
-          set BUILD_ID=dontKillMe
+          set JENKINS_NODE_COOKIE=dontKillMe
 
           start "lease-workflow-app" javaw -jar target\\lease-document-approval-workflow-0.0.1-SNAPSHOT.jar --server.port=%APP_PORT% --spring.profiles.active=%SPRING_PROFILE% --spring.datasource.password=%DB_PASSWORD%
         '''
