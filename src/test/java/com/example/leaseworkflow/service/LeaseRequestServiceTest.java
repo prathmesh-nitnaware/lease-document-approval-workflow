@@ -170,4 +170,30 @@ class LeaseRequestServiceTest {
         assertTrue(exception.getMessage().contains("required"));
         verifyNoInteractions(leaseRequestRepository, documentRepository);
     }
+
+    @Test
+    void testResubmitRequest_InvalidDocuments_FailsValidationAndPreservesStatus() {
+        LeaseRequest existingRequest = new LeaseRequest("Charlie", "Residential", "CHANGES_REQUESTED");
+        existingRequest.setId(200L);
+
+        when(leaseRequestRepository.findById(200L)).thenReturn(java.util.Optional.of(existingRequest));
+
+        MockMultipartFile invalidFile = new MockMultipartFile(
+                "files",
+                "malicious.exe",
+                "application/x-msdownload",
+                "Bad Content".getBytes()
+        );
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> leaseRequestService.resubmitRequest(200L, List.of(invalidFile))
+        );
+
+        assertTrue(exception.getMessage().contains("required to resubmit"));
+        assertEquals("CHANGES_REQUESTED", existingRequest.getStatus());
+        verify(leaseRequestRepository, never()).save(any(LeaseRequest.class));
+        verify(documentRepository, never()).save(any(Document.class));
+        verify(statusHistoryRepository, never()).save(any());
+    }
 }

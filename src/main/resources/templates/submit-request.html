@@ -290,7 +290,7 @@
         <!-- Error Alert -->
         <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert">
             <span>&#9888;</span>
-            <span th:text="${errorMessage}">Validation Error</span>
+            <span th:text="${errorMessage}" id="error-message">Validation Error</span>
         </div>
 
         <!-- Success Confirmation Card (US1 AC3) -->
@@ -300,14 +300,14 @@
                 <div>
                     <h3 style="color: #34d399; font-size: 1.2rem;">Request Submitted Successfully!</h3>
                     <p style="color: var(--text-muted); font-size: 0.9rem;">
-                        Unique Request ID: <strong th:text="${requestId}" style="color: #ffffff;">#101</strong>
+                        Unique Request ID: <strong th:text="${requestId}" id="confirmation-request-id" style="color: #ffffff;">#101</strong>
                     </p>
                 </div>
-                <span class="badge-status" th:text="${status}" style="margin-left: auto;">SUBMITTED</span>
+                <span class="badge-status" id="confirmation-status" th:text="${status}" style="margin-left: auto;">SUBMITTED</span>
             </div>
 
             <h4 style="font-size: 0.9rem; margin-top: 1.2rem; color: var(--text-main);">Attached Supporting Documents</h4>
-            <table class="doc-table">
+            <table class="doc-table" id="confirmation-doc-table">
                 <thead>
                     <tr>
                         <th>File Name</th>
@@ -326,7 +326,7 @@
                 </tbody>
             </table>
 
-            <a href="/submit-request" class="new-submit-link">&larr; Submit Another Request</a>
+            <a href="/submit-request" id="submit-another-link" class="new-submit-link">&larr; Submit Another Request</a>
         </div>
 
         <!-- Submission Form -->
@@ -362,7 +362,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-submit">Submit Lease Request</button>
+            <button type="submit" id="submit-btn" class="btn-submit">Submit Lease Request</button>
         </form>
 
     </div>

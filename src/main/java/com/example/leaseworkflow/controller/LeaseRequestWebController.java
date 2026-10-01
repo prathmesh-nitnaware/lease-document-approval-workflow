@@ -109,6 +109,8 @@ public class LeaseRequestWebController {
         return leaseRequestService.getRequestById(id)
                 .map(req -> {
                     model.addAttribute("request", req);
+                    model.addAttribute("reviewActions", leaseRequestService.getReviewActions(id));
+                    model.addAttribute("statusHistory", leaseRequestService.getStatusHistory(id));
                     return "track-request";
                 })
                 .orElse("redirect:/submit-request");
@@ -122,11 +124,21 @@ public class LeaseRequestWebController {
         try {
             LeaseRequestResponseDto response = leaseRequestService.resubmitRequest(id, files);
             model.addAttribute("request", response);
+            model.addAttribute("reviewActions", leaseRequestService.getReviewActions(id));
+            model.addAttribute("statusHistory", leaseRequestService.getStatusHistory(id));
             model.addAttribute("successMessage", "Request #" + id + " has been resubmitted to SUBMITTED status.");
             return "track-request";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return trackRequest(id, model);
         }
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public String handleMaxSizeException(org.springframework.web.multipart.MaxUploadSizeExceededException e, Model model) {
+        model.addAttribute("requesterId", "");
+        model.addAttribute("leaseType", "");
+        model.addAttribute("errorMessage", "File exceeds maximum allowed size of 5 MB (" + e.getMessage() + ").");
+        return "submit-request";
     }
 }
