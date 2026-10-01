@@ -1,6 +1,7 @@
 pipeline {
   agent any
   parameters {
+    string(name: 'BRANCH_NAME', defaultValue: 'develop', description: 'Branch to build and deploy')
     string(name: 'APP_PORT', defaultValue: '8081', description: 'Port the app will listen on')
     choice(name: 'SPRING_PROFILE', choices: ['dev', 'staging'], description: 'Active Spring profile')
   }
@@ -9,7 +10,11 @@ pipeline {
   }
   stages {
     stage('Checkout') {
-      steps { checkout scm }
+      steps {
+        git branch: params.BRANCH_NAME,
+            credentialsId: 'github-pat',
+            url: 'https://github.com/prathmesh-nitnaware/lease-document-approval-workflow'
+      }
     }
     stage('Build') {
       steps {
