@@ -14,6 +14,7 @@ pipeline {
     stage('Build') {
       steps {
         bat '''
+          for /f "tokens=5" %%P in ('netstat -aon ^| findstr :%APP_PORT% ^| findstr LISTENING') do taskkill /PID %%P /F || rem
           set SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/lease_workflow
           set SPRING_DATASOURCE_USERNAME=root
           set SPRING_DATASOURCE_PASSWORD=%DB_PASSWORD%
@@ -30,7 +31,7 @@ pipeline {
       steps {
         bat '''
           REM Stop any previously running instance on this port
-          for /f "tokens=5" %%P in ('netstat -aon ^| findstr :%APP_PORT% ^| findstr LISTENING') do taskkill /PID %%P /F
+          for /f "tokens=5" %%P in ('netstat -aon ^| findstr :%APP_PORT% ^| findstr LISTENING') do taskkill /PID %%P /F || rem
 
           REM Prevent Jenkins from killing this process when the build step ends
           set JENKINS_NODE_COOKIE=dontKillMe
@@ -45,6 +46,9 @@ pipeline {
     }
   }
   post {
+    always {
+      junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+    }
     success {
       echo "Deployed at http://localhost:${params.APP_PORT} (profile: ${params.SPRING_PROFILE})"
     }
