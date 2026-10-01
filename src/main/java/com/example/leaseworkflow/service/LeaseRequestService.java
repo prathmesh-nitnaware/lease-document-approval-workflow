@@ -119,9 +119,9 @@ public class LeaseRequestService {
             throw new IllegalArgumentException("At least one updated document is required to resubmit.");
         }
 
-        String oldStatus = request.getStatus();
+        List<Document> docsToSave = new ArrayList<>();
+        boolean hasValidDocument = false;
 
-        List<DocumentDto> documentDtos = new ArrayList<>();
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
             ValidationService.ValidationResult docVal = validationService.validateDocument(file);
@@ -130,9 +130,25 @@ public class LeaseRequestService {
             document.setFileName(file.getOriginalFilename() != null ? file.getOriginalFilename().trim() : "unnamed");
             document.setFileType(getFileExtensionOrContentType(file));
             document.setFileSize(file.getSize());
-            document.setValidationResult(docVal.isValid() ? "VALID" : "INVALID: " + docVal.getReason());
 
-            Document savedDoc = documentRepository.save(document);
+            if (docVal.isValid()) {
+                document.setValidationResult("VALID");
+                hasValidDocument = true;
+            } else {
+                document.setValidationResult("INVALID: " + docVal.getReason());
+            }
+            docsToSave.add(document);
+        }
+
+        if (!hasValidDocument) {
+            throw new IllegalArgumentException("At least one valid document (PDF, JPG, PNG <= 5MB) is required to resubmit.");
+        }
+
+        String oldStatus = request.getStatus();
+
+        List<DocumentDto> documentDtos = new ArrayList<>();
+        for (Document doc : docsToSave) {
+            Document savedDoc = documentRepository.save(doc);
             documentDtos.add(new DocumentDto(
                     savedDoc.getId(),
                     savedDoc.getFileName(),
@@ -219,6 +235,10 @@ public class LeaseRequestService {
 
     public List<StatusHistory> getStatusHistory(Long requestId) {
         return statusHistoryRepository.findByRequestIdOrderByChangedAtAsc(requestId);
+    }
+
+    public List<ReviewAction> getReviewActions(Long requestId) {
+        return reviewActionRepository.findByRequestId(requestId);
     }
 
     @Transactional

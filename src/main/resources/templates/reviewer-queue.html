@@ -59,10 +59,10 @@
         <a href="/submit-request" style="color: var(--primary); text-decoration: none; font-weight: 600;">+ New Submission Form</a>
     </div>
 
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success" id="success-alert" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert" th:text="${errorMessage}"></div>
 
-    <table class="queue-table">
+    <table class="queue-table" id="reviewer-queue-table">
         <thead>
             <tr>
                 <th>Req ID</th>
@@ -75,32 +75,32 @@
             </tr>
         </thead>
         <tbody>
-            <tr th:each="req : ${requests}">
-                <td><strong th:text="'#' + ${req.id}">#1</strong></td>
-                <td th:text="${req.requesterId}">Jane Doe</td>
-                <td th:text="${req.leaseType}">Commercial</td>
-                <td th:text="${#temporals.format(req.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-07</td>
+            <tr th:each="req : ${requests}" th:id="'request-row-' + ${req.id}">
+                <td><strong th:id="'req-id-' + ${req.id}" th:text="'#' + ${req.id}">#1</strong></td>
+                <td th:id="'req-requester-' + ${req.id}" th:text="${req.requesterId}">Jane Doe</td>
+                <td th:id="'req-type-' + ${req.id}" th:text="${req.leaseType}">Commercial</td>
+                <td th:id="'req-date-' + ${req.id}" th:text="${#temporals.format(req.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-07</td>
                 <td>
-                    <ul class="doc-list">
+                    <ul class="doc-list" th:id="'req-docs-' + ${req.id}">
                         <li th:each="doc : ${req.documents}" th:text="${doc.fileName} + ' (' + ${doc.fileType} + ')'">doc.pdf</li>
                     </ul>
                 </td>
                 <td>
-                    <span class="badge badge-submitted" th:text="${req.status}">SUBMITTED</span>
+                    <span th:id="'req-status-' + ${req.id}" class="badge badge-submitted" th:text="${req.status}">SUBMITTED</span>
                 </td>
                 <td>
                     <div class="action-group">
                         <form action="/reviewer/approve" method="post" style="display:inline;">
                             <input type="hidden" name="requestId" th:value="${req.id}"/>
-                            <button type="submit" class="btn btn-approve">Approve</button>
+                            <button type="submit" class="btn btn-approve" th:id="'approve-btn-' + ${req.id}">Approve</button>
                         </form>
 
-                        <button class="btn btn-changes" th:onclick="'openModal(\'changes\', ' + ${req.id} + ')'">Request Changes</button>
-                        <button class="btn btn-reject" th:onclick="'openModal(\'reject\', ' + ${req.id} + ')'">Reject</button>
+                        <button class="btn btn-changes" th:id="'changes-btn-' + ${req.id}" th:onclick="'openModal(\'changes\', ' + ${req.id} + ')'">Request Changes</button>
+                        <button class="btn btn-reject" th:id="'reject-btn-' + ${req.id}" th:onclick="'openModal(\'reject\', ' + ${req.id} + ')'">Reject</button>
                     </div>
                 </td>
             </tr>
-            <tr th:if="${#lists.isEmpty(requests)}">
+            <tr th:if="${#lists.isEmpty(requests)}" id="empty-queue-row">
                 <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No pending requests in queue.</td>
             </tr>
         </tbody>
@@ -113,10 +113,10 @@
         <h3 id="modalTitle">Add Comment</h3>
         <form id="modalForm" method="post">
             <input type="hidden" name="requestId" id="modalRequestId"/>
-            <label for="comment" style="font-size: 0.85rem; font-weight: 600;">Comment / Reason (Mandatory):</label>
+            <label for="modalComment" style="font-size: 0.85rem; font-weight: 600;">Comment / Reason (Mandatory):</label>
             <textarea name="comment" id="modalComment" rows="4" required></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-                <button type="button" class="btn" style="background: #475569; color: white;" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn" id="modalCancelBtn" style="background: #475569; color: white;" onclick="closeModal()">Cancel</button>
                 <button type="submit" class="btn btn-approve" id="modalSubmitBtn">Submit</button>
             </div>
         </form>
