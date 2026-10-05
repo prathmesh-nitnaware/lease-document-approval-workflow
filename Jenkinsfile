@@ -38,7 +38,7 @@ pipeline {
           script {
             env.GIT_SHA = bat(script: '@git rev-parse --short HEAD', returnStdout: true).trim()
             env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_SHA}"
-            env.DOCKER_IMAGE = "${env.DOCKERHUB_USER}/lease-workflow-app"
+            env.DOCKER_IMAGE = env.DOCKERHUB_USER.contains('/') ? env.DOCKERHUB_USER : "${env.DOCKERHUB_USER}/lease-workflow-app"
           }
           bat 'docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% -t %DOCKER_IMAGE%:latest .'
         }
