@@ -32,16 +32,40 @@ pipeline {
         archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
       }
     }
+    stage('Docker Build') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+          script {
+            env.GIT_SHA = bat(script: '@git rev-parse --short HEAD', returnStdout: true).trim()
+            env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_SHA}"
+            env.DOCKER_IMAGE = "${env.DOCKERHUB_USER}/lease-workflow-app"
+          }
+          bat 'docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% -t %DOCKER_IMAGE%:latest .'
+        }
+      }
+    }
+    stage('Docker Push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+          bat 'echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin'
+          bat 'docker push %DOCKER_IMAGE%:%IMAGE_TAG%'
+          bat 'docker push %DOCKER_IMAGE%:latest'
+          bat 'docker logout'
+        }
+      }
+    }
     stage('Deploy') {
       steps {
         bat '''
-          REM Stop any previously running instance on this port
-          for /f "tokens=5" %%P in ('netstat -aon ^| findstr :%APP_PORT% ^| findstr LISTENING') do taskkill /PID %%P /F || rem
-
-          REM Prevent Jenkins from killing this process when the build step ends
-          set JENKINS_NODE_COOKIE=dontKillMe
-
-          start "lease-workflow-app" javaw -jar target\\lease-document-approval-workflow-0.0.1-SNAPSHOT.jar --server.port=%APP_PORT% --spring.profiles.active=%SPRING_PROFILE% --spring.datasource.password=%DB_PASSWORD%
+          docker stop lease-workflow-container || exit 0
+          docker rm lease-workflow-container || exit 0
+          docker run -d --name lease-workflow-container -p %APP_PORT%:%APP_PORT% ^
+            -e SERVER_PORT=%APP_PORT% ^
+            -e SPRING_PROFILES_ACTIVE=%SPRING_PROFILE% ^
+            -e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/lease_workflow ^
+            -e SPRING_DATASOURCE_USERNAME=root ^
+            -e SPRING_DATASOURCE_PASSWORD=%DB_PASSWORD% ^
+            %DOCKER_IMAGE%:%IMAGE_TAG%
         '''
         script {
           sleep(time: 15, unit: 'SECONDS')
@@ -55,7 +79,7 @@ pipeline {
       junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
     }
     success {
-      echo "Deployed at http://localhost:${params.APP_PORT} (profile: ${params.SPRING_PROFILE})"
+      echo "Deployed container at http://localhost:${params.APP_PORT} (profile: ${params.SPRING_PROFILE}, image: ${env.DOCKER_IMAGE}:${env.IMAGE_TAG})"
     }
     failure {
       echo "Deploy failed — check console log"
