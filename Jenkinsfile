@@ -36,9 +36,10 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
           script {
+            env.DOCKERHUB_LOGIN_USER = env.DOCKERHUB_USER.split('/')[0].trim()
             env.GIT_SHA = bat(script: '@git rev-parse --short HEAD', returnStdout: true).trim()
             env.IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_SHA}"
-            env.DOCKER_IMAGE = env.DOCKERHUB_USER.contains('/') ? env.DOCKERHUB_USER : "${env.DOCKERHUB_USER}/lease-workflow-app"
+            env.DOCKER_IMAGE = "${env.DOCKERHUB_LOGIN_USER}/lease-workflow-app"
           }
           bat 'docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% -t %DOCKER_IMAGE%:latest .'
         }
@@ -47,7 +48,10 @@ pipeline {
     stage('Docker Push') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
-          bat 'echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin'
+          script {
+            env.DOCKERHUB_LOGIN_USER = env.DOCKERHUB_USER.split('/')[0].trim()
+          }
+          bat 'echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_LOGIN_USER% --password-stdin'
           bat 'docker push %DOCKER_IMAGE%:%IMAGE_TAG%'
           bat 'docker push %DOCKER_IMAGE%:latest'
           bat 'docker logout'
