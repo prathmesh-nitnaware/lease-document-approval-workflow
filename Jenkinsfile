@@ -61,8 +61,8 @@ pipeline {
     stage('Deploy') {
       steps {
         bat '''
-          docker stop lease-workflow-container || exit 0
-          docker rm lease-workflow-container || exit 0
+          docker stop lease-workflow-container || rem
+          docker rm lease-workflow-container || rem
           docker run -d --name lease-workflow-container -p %APP_PORT%:%APP_PORT% ^
             -e SERVER_PORT=%APP_PORT% ^
             -e SPRING_PROFILES_ACTIVE=%SPRING_PROFILE% ^
