@@ -51,7 +51,7 @@ pipeline {
           script {
             env.DOCKERHUB_LOGIN_USER = env.DOCKERHUB_USER.split('/')[0].trim()
           }
-          bat 'echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_LOGIN_USER% --password-stdin'
+          bat 'echo %DOCKERHUB_PASS%| docker login -u %DOCKERHUB_LOGIN_USER% --password-stdin'
           bat 'docker push %DOCKER_IMAGE%:%IMAGE_TAG%'
           bat 'docker push %DOCKER_IMAGE%:latest'
           bat 'docker logout'
