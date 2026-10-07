@@ -80,4 +80,5 @@ Jenkins CI pipeline configured for automated build verification.
 ## Deployment & Continuous Delivery
 
 - **Containerization**: Application containerized on Java 21 JRE (`eclipse-temurin:21-jre`).
-- **Pipeline**: Automated Jenkins CD pipeline builds, versions, pushes Docker images to Docker Hub (`prathmeshn2605/lease-workflow-app`), and deploys containers to port 8081.
+- **Pipeline**: Automated Jenkins CD pipeline builds, versions, pushes Docker images to Docker Hub (`prathmeshn2605/lease-workflow-app`), and deploys containers to port 8081.
+- **Verification**: Verified automated Docker build, push, and container deployment via SCM polling.
