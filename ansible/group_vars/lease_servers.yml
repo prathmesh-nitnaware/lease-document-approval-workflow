@@ -1,0 +1,15 @@
+---
+# Application Docker image configuration
+image_name: "prathmeshn2605/lease-workflow-app"
+image_tag: "latest"
+
+# Application ports and networking
+app_port: 8081
+nginx_port: 80
+spring_profiles_active: "prod"
+docker_network_name: "lease-net"
+mysql_volume_name: "lease-mysql-data"
+
+# Database Configuration
+db_name: "lease_workflow"
+db_user: "leaseapp"

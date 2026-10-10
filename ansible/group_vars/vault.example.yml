@@ -1,0 +1,20 @@
+---
+# =============================================================================
+# Ansible Vault Secrets Template (Example)
+# =============================================================================
+# DO NOT store plaintext secrets in this repository.
+#
+# Create the encrypted vault file using:
+#   ansible-vault create ansible/group_vars/vault.yml
+#
+# Required variables inside vault.yml:
+#   vault_db_password: "<your-leaseapp-password>"
+#   vault_db_root_password: "<your-root-password>"
+#
+# To view or edit after creation:
+#   ansible-vault view ansible/group_vars/vault.yml
+#   ansible-vault edit ansible/group_vars/vault.yml
+# =============================================================================
+
+vault_db_password: "CHANGEME_LEASEAPP_PASSWORD"
+vault_db_root_password: "CHANGEME_MYSQL_ROOT_PASSWORD"
