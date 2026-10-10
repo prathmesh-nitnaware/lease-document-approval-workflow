@@ -1,0 +1,237 @@
+---
+- name: Configure Target Node for Lease Document Approval Workflow
+  hosts: lease_servers
+  become: true
+  vars_files:
+    - group_vars/lease_servers.yml
+    - group_vars/vault.yml
+
+  handlers:
+    - name: Restart Docker
+      ansible.builtin.service:
+        name: docker
+        state: restarted
+
+    - name: Reload Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+  tasks:
+    # =========================================================================
+    # 1. Common / Base Prerequisites
+    # =========================================================================
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install base dependencies and python docker sdk
+      ansible.builtin.apt:
+        name:
+          - curl
+          - ca-certificates
+          - gnupg
+          - python3-docker
+        state: present
+
+    # =========================================================================
+    # 2. Docker Engine Installation
+    # =========================================================================
+    - name: Ensure apt keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download official Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Add official Docker APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker CE packages and compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Ensure Docker service is enabled and started
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    # =========================================================================
+    # 3. Application User, Directories, and Configuration
+    # =========================================================================
+    - name: Ensure docker group exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Create non-login application system user
+      ansible.builtin.user:
+        name: leaseapp
+        system: true
+        shell: /usr/sbin/nologin
+        home: /opt/lease-workflow
+        groups: docker
+        append: true
+        create_home: true
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: leaseapp
+        group: leaseapp
+        mode: "0750"
+      loop:
+        - /opt/lease-workflow
+        - /opt/lease-workflow/config
+        - /opt/lease-workflow/logs
+
+    - name: Create system log directory
+      ansible.builtin.file:
+        path: /var/log/lease-workflow
+        state: directory
+        owner: leaseapp
+        group: leaseapp
+        mode: "0755"
+
+    - name: Deploy application environment file (app.env)
+      ansible.builtin.template:
+        src: templates/app.env.j2
+        dest: /opt/lease-workflow/config/app.env
+        owner: leaseapp
+        group: leaseapp
+        mode: "0600"
+
+    # =========================================================================
+    # 4. Containers: Network, MySQL 8, and Lease Workflow App
+    # =========================================================================
+    - name: Create isolated Docker bridge network
+      community.docker.docker_network:
+        name: "{{ docker_network_name }}"
+        state: present
+
+    - name: Create named Docker volume for MySQL data
+      community.docker.docker_volume:
+        name: "{{ mysql_volume_name }}"
+        state: present
+
+    - name: Deploy MySQL 8 container (Internal port 3306 only, unpublished)
+      community.docker.docker_container:
+        name: lease-mysql
+        image: "mysql:8.0"
+        state: started
+        restart_policy: unless-stopped
+        networks:
+          - name: "{{ docker_network_name }}"
+        volumes:
+          - "{{ mysql_volume_name }}:/var/lib/mysql"
+        env:
+          MYSQL_ROOT_PASSWORD: "{{ vault_db_root_password }}"
+          MYSQL_DATABASE: "{{ db_name }}"
+          MYSQL_USER: "{{ db_user }}"
+          MYSQL_PASSWORD: "{{ vault_db_password }}"
+        healthcheck:
+          test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+        published_ports: []
+
+    - name: Deploy Lease Workflow Application container
+      community.docker.docker_container:
+        name: lease-workflow-app
+        image: "{{ image_name }}:{{ image_tag }}"
+        pull: true
+        state: started
+        restart_policy: unless-stopped
+        networks:
+          - name: "{{ docker_network_name }}"
+        env_file: /opt/lease-workflow/config/app.env
+        published_ports:
+          - "127.0.0.1:{{ app_port }}:{{ app_port }}"
+
+    # =========================================================================
+    # 5. Nginx Reverse Proxy
+    # =========================================================================
+    - name: Install Nginx web server
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Deploy Nginx reverse proxy configuration
+      ansible.builtin.template:
+        src: templates/nginx-lease-workflow.conf.j2
+        dest: /etc/nginx/sites-available/lease-workflow
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Nginx
+
+    - name: Enable Nginx lease-workflow site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/lease-workflow
+        dest: /etc/nginx/sites-enabled/lease-workflow
+        state: link
+      notify: Reload Nginx
+
+    - name: Remove Nginx default site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+
+    - name: Validate Nginx configuration
+      ansible.builtin.command:
+        cmd: nginx -t
+      changed_when: false
+
+    - name: Ensure Nginx service is enabled and started
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: true
+        state: started
+
+    - name: Flush handlers to apply configuration
+      ansible.builtin.meta: flush_handlers
+
+    # =========================================================================
+    # 6. End-to-End Health Verification
+    # =========================================================================
+    - name: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health)
+      ansible.builtin.uri:
+        url: "http://127.0.0.1/actuator/health"
+        method: GET
+        status_code: 200
+        return_content: true
+      register: health_check
+      until: health_check.status == 200 and 'UP' in health_check.content
+      retries: 30
+      delay: 5
+      when: not ansible_check_mode
+
+    - name: Display health check response
+      ansible.builtin.debug:
+        var: health_check.json
+      when: not ansible_check_mode

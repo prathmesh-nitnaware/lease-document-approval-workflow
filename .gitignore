@@ -26,3 +26,15 @@ target/
 # Local configuration / secrets
 application-local.yml
 application-local.properties
+
+# Reports
+reports/
+
+# Ansible & SSH secrets
+*.vault_pass
+.vault_pass*
+*.key
+*.pem
+id_ed25519*
+id_rsa*
+*.retry
