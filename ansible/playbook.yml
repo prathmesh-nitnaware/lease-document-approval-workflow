@@ -229,7 +229,9 @@
       until: health_check.status == 200 and 'UP' in health_check.content
       retries: 30
       delay: 5
+      when: not ansible_check_mode
 
     - name: Display health check response
       ansible.builtin.debug:
         var: health_check.json
+      when: not ansible_check_mode
