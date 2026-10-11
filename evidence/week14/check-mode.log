@@ -1,0 +1,94 @@
+
+PLAY [Configure Target Node for Lease Document Approval Workflow] **************
+
+TASK [Gathering Facts] *********************************************************
+ok: [lease-target]
+
+TASK [Update apt cache] ********************************************************
+ok: [lease-target]
+
+TASK [Install base dependencies and python docker sdk] *************************
+ok: [lease-target]
+
+TASK [Ensure apt keyrings directory exists] ************************************
+ok: [lease-target]
+
+TASK [Download official Docker GPG key] ****************************************
+ok: [lease-target]
+
+TASK [Add official Docker APT repository] **************************************
+ok: [lease-target]
+
+TASK [Install Docker CE packages and compose plugin] ***************************
+ok: [lease-target]
+
+TASK [Ensure Docker service is enabled and started] ****************************
+ok: [lease-target]
+
+TASK [Ensure docker group exists] **********************************************
+ok: [lease-target]
+
+TASK [Create non-login application system user] ********************************
+ok: [lease-target]
+
+TASK [Create application directories] ******************************************
+ok: [lease-target] => (item=/opt/lease-workflow)
+ok: [lease-target] => (item=/opt/lease-workflow/config)
+ok: [lease-target] => (item=/opt/lease-workflow/logs)
+
+TASK [Create system log directory] *********************************************
+ok: [lease-target]
+
+TASK [Deploy application environment file (app.env)] ***************************
+ok: [lease-target]
+
+TASK [Create isolated Docker bridge network] ***********************************
+ok: [lease-target]
+
+TASK [Create named Docker volume for MySQL data] *******************************
+ok: [lease-target]
+
+TASK [Deploy MySQL 8 container (Internal port 3306 only, unpublished)] *********
+ok: [lease-target]
+
+TASK [Install Nginx web server] ************************************************
+ok: [lease-target]
+
+TASK [Deploy Nginx reverse proxy configuration] ********************************
+ok: [lease-target]
+
+TASK [Enable Nginx lease-workflow site] ****************************************
+ok: [lease-target]
+
+TASK [Remove Nginx default site] ***********************************************
+ok: [lease-target]
+
+TASK [Validate Nginx configuration] ********************************************
+skipping: [lease-target]
+
+TASK [Ensure Nginx service is enabled and started] *****************************
+ok: [lease-target]
+
+TASK [Flush handlers to apply configuration] ***********************************
+
+TASK [Read last stable tag if present] *****************************************
+ok: [lease-target]
+
+TASK [Set last known stable tag fact] ******************************************
+ok: [lease-target]
+
+TASK [Deploy Lease Workflow Application container] *****************************
+ok: [lease-target]
+
+TASK [Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health)] ***
+skipping: [lease-target]
+
+TASK [Display health check response] *******************************************
+skipping: [lease-target]
+
+TASK [Record newly verified release tag in .last_stable_tag] *******************
+skipping: [lease-target]
+
+PLAY RECAP *********************************************************************
+lease-target               : ok=24   changed=0    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0   
+

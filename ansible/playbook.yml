@@ -159,19 +159,6 @@
           retries: 5
         published_ports: []
 
-    - name: Deploy Lease Workflow Application container
-      community.docker.docker_container:
-        name: lease-workflow-app
-        image: "{{ image_name }}:{{ image_tag }}"
-        pull: true
-        state: started
-        restart_policy: unless-stopped
-        networks:
-          - name: "{{ docker_network_name }}"
-        env_file: /opt/lease-workflow/config/app.env
-        published_ports:
-          - "127.0.0.1:{{ app_port }}:{{ app_port }}"
-
     # =========================================================================
     # 5. Nginx Reverse Proxy
     # =========================================================================
@@ -217,21 +204,93 @@
       ansible.builtin.meta: flush_handlers
 
     # =========================================================================
-    # 6. End-to-End Health Verification
+    # 6. Application Deployment with Automated Rollback (block/rescue)
     # =========================================================================
-    - name: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health)
-      ansible.builtin.uri:
-        url: "http://127.0.0.1/actuator/health"
-        method: GET
-        status_code: 200
-        return_content: true
-      register: health_check
-      until: health_check.status == 200 and 'UP' in health_check.content
-      retries: 30
-      delay: 5
-      when: not ansible_check_mode
+    - name: Read last stable tag if present
+      ansible.builtin.slurp:
+        src: /opt/lease-workflow/.last_stable_tag
+      register: last_stable_tag_file
+      failed_when: false
+      check_mode: false
 
-    - name: Display health check response
-      ansible.builtin.debug:
-        var: health_check.json
-      when: not ansible_check_mode
+    - name: Set last known stable tag fact
+      ansible.builtin.set_fact:
+        last_stable_release: "{{ (last_stable_tag_file.content | b64decode | trim) if (last_stable_tag_file.content is defined) else '22-2d096b3' }}"
+
+    - name: Deploy application release with automated rollback
+      block:
+        - name: Deploy Lease Workflow Application container
+          community.docker.docker_container:
+            name: lease-workflow-app
+            image: "{{ image_name }}:{{ image_tag }}"
+            pull: false
+            state: started
+            restart_policy: unless-stopped
+            networks:
+              - name: "{{ docker_network_name }}"
+            env_file: /opt/lease-workflow/config/app.env
+            published_ports:
+              - "127.0.0.1:{{ app_port }}:{{ app_port }}"
+
+        - name: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health)
+          ansible.builtin.uri:
+            url: "http://127.0.0.1/actuator/health"
+            method: GET
+            status_code: 200
+            return_content: true
+          register: health_check
+          until: health_check.status == 200 and 'UP' in health_check.content
+          retries: "{{ health_check_retries | default(30) }}"
+          delay: "{{ health_check_delay | default(5) }}"
+          when: not ansible_check_mode
+
+        - name: Display health check response
+          ansible.builtin.debug:
+            var: health_check.json
+          when: not ansible_check_mode
+
+        - name: Record newly verified release tag in .last_stable_tag
+          ansible.builtin.copy:
+            content: "{{ image_tag }}\n"
+            dest: /opt/lease-workflow/.last_stable_tag
+            owner: leaseapp
+            group: leaseapp
+            mode: "0644"
+          when: not ansible_check_mode
+
+      rescue:
+        - name: Log release failure and initiate rollback
+          ansible.builtin.debug:
+            msg: "Deployment of {{ image_tag }} failed health checks. Rolling back to stable release: {{ last_stable_release }}"
+
+        - name: Rollback to last stable application release
+          community.docker.docker_container:
+            name: lease-workflow-app
+            image: "{{ image_name }}:{{ last_stable_release }}"
+            pull: false
+            state: started
+            restart_policy: unless-stopped
+            networks:
+              - name: "{{ docker_network_name }}"
+            env_file: /opt/lease-workflow/config/app.env
+            published_ports:
+              - "127.0.0.1:{{ app_port }}:{{ app_port }}"
+
+        - name: Verify application health after rollback
+          ansible.builtin.uri:
+            url: "http://127.0.0.1/actuator/health"
+            method: GET
+            status_code: 200
+            return_content: true
+          register: rollback_health_check
+          until: rollback_health_check.status == 200 and 'UP' in rollback_health_check.content
+          retries: 30
+          delay: 5
+
+        - name: Display rollback health check response
+          ansible.builtin.debug:
+            var: rollback_health_check.json
+
+        - name: Fail play with explicit rollback notification
+          ansible.builtin.fail:
+            msg: "Deployment failed for image_tag={{ image_tag }}. Rollback to {{ last_stable_release }} succeeded and verified UP."

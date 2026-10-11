@@ -22,6 +22,7 @@ target/
 
 # Logs
 *.log
+!evidence/**
 
 # Local configuration / secrets
 application-local.yml
