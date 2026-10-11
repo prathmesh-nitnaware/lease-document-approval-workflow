@@ -1,0 +1,109 @@
+
+PLAY [Configure Target Node for Lease Document Approval Workflow] **************
+
+TASK [Gathering Facts] *********************************************************
+ok: [lease-target]
+
+TASK [Update apt cache] ********************************************************
+ok: [lease-target]
+
+TASK [Install base dependencies and python docker sdk] *************************
+ok: [lease-target]
+
+TASK [Ensure apt keyrings directory exists] ************************************
+ok: [lease-target]
+
+TASK [Download official Docker GPG key] ****************************************
+ok: [lease-target]
+
+TASK [Add official Docker APT repository] **************************************
+ok: [lease-target]
+
+TASK [Install Docker CE packages and compose plugin] ***************************
+ok: [lease-target]
+
+TASK [Ensure Docker service is enabled and started] ****************************
+ok: [lease-target]
+
+TASK [Ensure docker group exists] **********************************************
+ok: [lease-target]
+
+TASK [Create non-login application system user] ********************************
+ok: [lease-target]
+
+TASK [Create application directories] ******************************************
+ok: [lease-target] => (item=/opt/lease-workflow)
+ok: [lease-target] => (item=/opt/lease-workflow/config)
+ok: [lease-target] => (item=/opt/lease-workflow/logs)
+
+TASK [Create system log directory] *********************************************
+ok: [lease-target]
+
+TASK [Deploy application environment file (app.env)] ***************************
+ok: [lease-target]
+
+TASK [Create isolated Docker bridge network] ***********************************
+ok: [lease-target]
+
+TASK [Create named Docker volume for MySQL data] *******************************
+ok: [lease-target]
+
+TASK [Deploy MySQL 8 container (Internal port 3306 only, unpublished)] *********
+ok: [lease-target]
+
+TASK [Install Nginx web server] ************************************************
+ok: [lease-target]
+
+TASK [Deploy Nginx reverse proxy configuration] ********************************
+ok: [lease-target]
+
+TASK [Enable Nginx lease-workflow site] ****************************************
+ok: [lease-target]
+
+TASK [Remove Nginx default site] ***********************************************
+ok: [lease-target]
+
+TASK [Validate Nginx configuration] ********************************************
+ok: [lease-target]
+
+TASK [Ensure Nginx service is enabled and started] *****************************
+ok: [lease-target]
+
+TASK [Flush handlers to apply configuration] ***********************************
+
+TASK [Read last stable tag if present] *****************************************
+ok: [lease-target]
+
+TASK [Set last known stable tag fact] ******************************************
+ok: [lease-target]
+
+TASK [Deploy Lease Workflow Application container] *****************************
+[DEPRECATION WARNING]: The default value "ignore" for image_name_mismatch has 
+been deprecated and will change to "recreate" in community.docker 4.0.0. In the
+ current situation, this would cause the container to be recreated since the 
+current container's image name "prathmeshn2605/lease-workflow-app:22-2d096b3" 
+does not match the desired image name "prathmeshn2605/lease-workflow-
+app:24-40b8473". This feature will be removed from community.docker in version 
+4.0.0. Deprecation warnings can be disabled by setting 
+deprecation_warnings=False in ansible.cfg.
+changed: [lease-target]
+
+TASK [Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health)] ***
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (30 retries left).
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (29 retries left).
+ok: [lease-target]
+
+TASK [Display health check response] *******************************************
+ok: [lease-target] => 
+  health_check.json:
+    groups:
+    - liveness
+    - readiness
+    status: UP
+
+TASK [Record newly verified release tag in .last_stable_tag] *******************
+changed: [lease-target]
+
+PLAY RECAP *********************************************************************
+lease-target               : ok=28   changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+

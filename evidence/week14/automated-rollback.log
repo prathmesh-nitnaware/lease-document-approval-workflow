@@ -1,0 +1,152 @@
+
+PLAY [Configure Target Node for Lease Document Approval Workflow] **************
+
+TASK [Gathering Facts] *********************************************************
+ok: [lease-target]
+
+TASK [Update apt cache] ********************************************************
+ok: [lease-target]
+
+TASK [Install base dependencies and python docker sdk] *************************
+ok: [lease-target]
+
+TASK [Ensure apt keyrings directory exists] ************************************
+ok: [lease-target]
+
+TASK [Download official Docker GPG key] ****************************************
+ok: [lease-target]
+
+TASK [Add official Docker APT repository] **************************************
+ok: [lease-target]
+
+TASK [Install Docker CE packages and compose plugin] ***************************
+ok: [lease-target]
+
+TASK [Ensure Docker service is enabled and started] ****************************
+ok: [lease-target]
+
+TASK [Ensure docker group exists] **********************************************
+ok: [lease-target]
+
+TASK [Create non-login application system user] ********************************
+ok: [lease-target]
+
+TASK [Create application directories] ******************************************
+ok: [lease-target] => (item=/opt/lease-workflow)
+ok: [lease-target] => (item=/opt/lease-workflow/config)
+ok: [lease-target] => (item=/opt/lease-workflow/logs)
+
+TASK [Create system log directory] *********************************************
+ok: [lease-target]
+
+TASK [Deploy application environment file (app.env)] ***************************
+ok: [lease-target]
+
+TASK [Create isolated Docker bridge network] ***********************************
+ok: [lease-target]
+
+TASK [Create named Docker volume for MySQL data] *******************************
+ok: [lease-target]
+
+TASK [Deploy MySQL 8 container (Internal port 3306 only, unpublished)] *********
+ok: [lease-target]
+
+TASK [Install Nginx web server] ************************************************
+ok: [lease-target]
+
+TASK [Deploy Nginx reverse proxy configuration] ********************************
+ok: [lease-target]
+
+TASK [Enable Nginx lease-workflow site] ****************************************
+ok: [lease-target]
+
+TASK [Remove Nginx default site] ***********************************************
+ok: [lease-target]
+
+TASK [Validate Nginx configuration] ********************************************
+ok: [lease-target]
+
+TASK [Ensure Nginx service is enabled and started] *****************************
+ok: [lease-target]
+
+TASK [Flush handlers to apply configuration] ***********************************
+
+TASK [Read last stable tag if present] *****************************************
+ok: [lease-target]
+
+TASK [Set last known stable tag fact] ******************************************
+ok: [lease-target]
+
+TASK [Deploy Lease Workflow Application container] *****************************
+[DEPRECATION WARNING]: The default value "ignore" for image_name_mismatch has 
+been deprecated and will change to "recreate" in community.docker 4.0.0. In the
+ current situation, this would cause the container to be recreated since the 
+current container's image name "prathmeshn2605/lease-workflow-app:24-40b8473" 
+does not match the desired image name "prathmeshn2605/lease-workflow-
+app:broken-release-test". This feature will be removed from community.docker in
+ version 4.0.0. Deprecation warnings can be disabled by setting 
+deprecation_warnings=False in ansible.cfg.
+changed: [lease-target]
+
+TASK [Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health)] ***
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (6 retries left).
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (5 retries left).
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (4 retries left).
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (3 retries left).
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (2 retries left).
+FAILED - RETRYING: [lease-target]: Verify application health via Nginx reverse proxy (http://127.0.0.1/actuator/health) (1 retries left).
+fatal: [lease-target]: FAILED! => changed=false 
+  attempts: 6
+  connection: close
+  content: |-
+    <html>
+    <head><title>502 Bad Gateway</title></head>
+    <body>
+    <center><h1>502 Bad Gateway</h1></center>
+    <hr><center>nginx/1.24.0 (Ubuntu)</center>
+    </body>
+    </html>
+  content_length: '166'
+  content_type: text/html
+  date: Sun, 11 Oct 2026 05:57:04 GMT
+  elapsed: 0
+  msg: 'Status code was 502 and not [200]: HTTP Error 502: Bad Gateway'
+  redirected: false
+  server: nginx/1.24.0 (Ubuntu)
+  status: 502
+  url: http://127.0.0.1/actuator/health
+
+TASK [Log release failure and initiate rollback] *******************************
+ok: [lease-target] => 
+  msg: 'Deployment of broken-release-test failed health checks. Rolling back to stable release: 24-40b8473'
+
+TASK [Rollback to last stable application release] *****************************
+[DEPRECATION WARNING]: The default value "ignore" for image_name_mismatch has 
+been deprecated and will change to "recreate" in community.docker 4.0.0. In the
+ current situation, this would cause the container to be recreated since the 
+current container's image name "prathmeshn2605/lease-workflow-app:broken-
+release-test" does not match the desired image name "prathmeshn2605/lease-
+workflow-app:24-40b8473". This feature will be removed from community.docker in
+ version 4.0.0. Deprecation warnings can be disabled by setting 
+deprecation_warnings=False in ansible.cfg.
+changed: [lease-target]
+
+TASK [Verify application health after rollback] ********************************
+FAILED - RETRYING: [lease-target]: Verify application health after rollback (30 retries left).
+ok: [lease-target]
+
+TASK [Display rollback health check response] **********************************
+ok: [lease-target] => 
+  rollback_health_check.json:
+    groups:
+    - liveness
+    - readiness
+    status: UP
+
+TASK [Fail play with explicit rollback notification] ***************************
+fatal: [lease-target]: FAILED! => changed=false 
+  msg: Deployment failed for image_tag=broken-release-test. Rollback to 24-40b8473 succeeded and verified UP.
+
+PLAY RECAP *********************************************************************
+lease-target               : ok=29   changed=2    unreachable=0    failed=1    skipped=0    rescued=1    ignored=0   
+

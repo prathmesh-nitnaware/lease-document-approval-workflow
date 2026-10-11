@@ -1,0 +1,9 @@
+=== DOCKER PS INITIAL ===
+CONTAINER ID   IMAGE                                          NAMES                STATUS                    PORTS
+34e0697d58f9   prathmeshn2605/lease-workflow-app:22-2d096b3   lease-workflow-app   Up About a minute         127.0.0.1:8081->8081/tcp
+78465e90e697   mysql:8.0                                      lease-mysql          Up 30 minutes (healthy)   3306/tcp, 33060/tcp
+App ContainerId: 34e0697d58f9b95ac1f024cdc1cf1c0d33ec4d8a6977d822ff82c18115859c5b
+MySQL ContainerId: 78465e90e697e58e0c543dc9fb533b0f9d6698b23c780009b6e48b645cc36bac
+MySQL Health: healthy
+DRIVER    VOLUME NAME
+local     lease-mysql-data

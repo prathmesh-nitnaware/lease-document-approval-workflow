@@ -1,0 +1,11 @@
+[
+    {
+        "CreatedAt": "2026-10-10T19:06:05Z",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/lease-mysql-data/_data",
+        "Name": "lease-mysql-data",
+        "Options": {},
+        "Scope": "local"
+    }
+]

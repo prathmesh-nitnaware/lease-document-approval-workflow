@@ -1,0 +1,51 @@
+● nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-10-11 05:29:12 UTC; 22min ago
+       Docs: man:nginx(8)
+    Process: 191 ExecStartPre=/usr/sbin/nginx -t -q -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+    Process: 202 ExecStart=/usr/sbin/nginx -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+   Main PID: 223 (nginx)
+      Tasks: 13 (limit: 9119)
+     Memory: 10.4M (peak: 11.2M)
+        CPU: 86ms
+     CGroup: /system.slice/nginx.service
+             ├─223 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             ├─225 "nginx: worker process"
+             ├─226 "nginx: worker process"
+             ├─227 "nginx: worker process"
+             ├─228 "nginx: worker process"
+             ├─229 "nginx: worker process"
+             ├─231 "nginx: worker process"
+             ├─232 "nginx: worker process"
+             ├─233 "nginx: worker process"
+             ├─234 "nginx: worker process"
+             ├─235 "nginx: worker process"
+             ├─236 "nginx: worker process"
+             └─237 "nginx: worker process"
+
+Oct 11 05:29:12 DESKTOP-1PH9M24 systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...
+Oct 11 05:29:12 DESKTOP-1PH9M24 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+
+● docker.service - Docker Application Container Engine
+     Loaded: loaded (/usr/lib/systemd/system/docker.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-10-11 05:30:21 UTC; 21min ago
+TriggeredBy: ● docker.socket
+       Docs: https://docs.docker.com
+   Main PID: 309 (dockerd)
+      Tasks: 27
+     Memory: 137.2M (peak: 153.5M)
+        CPU: 5.571s
+     CGroup: /system.slice/docker.service
+             ├─ 309 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+             └─3871 /usr/bin/docker-proxy -proto tcp -host-ip 127.0.0.1 -host-port 8081 -container-ip 172.18.0.2 -container-port 8081 -use-listen-fd
+
+Oct 11 05:30:21 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:30:21.007472219Z" level=info msg="Initializing buildkit"
+Oct 11 05:30:21 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:30:21.305250787Z" level=info msg="Completed buildkit initialization"
+Oct 11 05:30:21 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:30:21.311344117Z" level=info msg="Daemon has completed initialization"
+Oct 11 05:30:21 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:30:21.311477391Z" level=info msg="API listen on /run/docker.sock"
+Oct 11 05:30:21 DESKTOP-1PH9M24 systemd[1]: Started docker.service - Docker Application Container Engine.
+Oct 11 05:40:14 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:40:14.648123299Z" level=info msg="image pulled" digest="sha256:187eb2c59621a7a6283fd9890e4ec39fb1bbda453150b468eebb54206d977438" remote="docker.io/prathmeshn2605/lease-workflow-app:22-2d096b3"
+Oct 11 05:40:14 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:40:14.724100467Z" level=info msg="stopping restart-manager" container=c988682416fe2b40e7e825055c620ea01f699958e4dcd8632819ab4cee72f1ce
+Oct 11 05:40:14 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:40:14.924109328Z" level=info msg="received task-delete event from containerd" container=c988682416fe2b40e7e825055c620ea01f699958e4dcd8632819ab4cee72f1ce module=libcontainerd namespace=moby topic=/tasks/delete type="*events.TaskDelete"
+Oct 11 05:40:15 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:40:15.664432945Z" level=info msg="sbJoin: gwep4 ''->'28f3465df204', gwep6 ''->''" eid=28f3465df204 ep=lease-workflow-app net=lease-net nid=f53aae37e8b6
+Oct 11 05:40:58 DESKTOP-1PH9M24 dockerd[309]: time="2026-10-11T05:40:58.169780483Z" level=info msg="image pulled" digest="sha256:187eb2c59621a7a6283fd9890e4ec39fb1bbda453150b468eebb54206d977438" remote="docker.io/prathmeshn2605/lease-workflow-app:22-2d096b3"
