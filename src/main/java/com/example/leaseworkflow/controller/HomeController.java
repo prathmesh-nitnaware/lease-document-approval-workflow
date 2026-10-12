@@ -20,6 +20,12 @@ public class HomeController {
         return "home";
     }
 
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
+        model.addAttribute("appVersion", appVersion);
+        return "dashboard";
+    }
+
     @GetMapping("/track-request")
     public String trackRequestWithoutId(@org.springframework.web.bind.annotation.RequestParam(value = "id", required = false) Long id) {
         if (id != null) {

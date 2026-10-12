@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Error')}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error — Lease Approval Workflow</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="app-body">
+
+    <!-- Shared Navigation -->
+    <header th:replace="~{fragments/layout :: navbar('home')}"></header>
+
+    <main id="main-content" class="container" style="max-width: 600px; padding: var(--space-12) var(--space-4); text-align: center;">
+        <div class="card" style="padding: var(--space-8);">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background-color: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            
+            <div style="font-family: var(--font-family-mono); font-size: var(--font-sm); color: #ef4444; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;" th:text="${status != null ? 'Error ' + status : 'Error 404'}">Error 404</div>
+            <h1 style="font-size: var(--font-2xl); font-weight: 700; color: #ffffff; margin: var(--space-2) 0 var(--space-3);">Page Not Found or Access Error</h1>
+            <p style="font-size: var(--font-sm); color: var(--text-muted); line-height: 1.6; margin-bottom: var(--space-6);" th:text="${message != null ? message : 'The requested page or resource could not be found. Please check the URL or return to the main workflow.'}">The requested page or resource could not be found. Please check the URL or return to the main workflow.</p>
+            
+            <div style="display: flex; justify-content: center; gap: var(--space-3); flex-wrap: wrap;">
+                <a th:href="@{/}" class="btn btn-primary">Return to Home</a>
+                <a th:href="@{/submit-request}" class="btn btn-secondary">Submit Request</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Shared Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

@@ -73,6 +73,17 @@ public class HomeControllerTest {
     }
 
     @Test
+    @DisplayName("GET /dashboard returns HTTP 200 and renders dashboard view")
+    void testGetDashboard_ReturnsOkAndRendersDashboard() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboard"))
+                .andExpect(model().attributeExists("appVersion"))
+                .andExpect(content().string(containsString("Operations Dashboard")))
+                .andExpect(content().string(containsString("Total Submissions")));
+    }
+
+    @Test
     @DisplayName("GET /track-request with ID parameter redirects to /track-request/{id}")
     void testTrackRequestWithIdParam_RedirectsToTrackRequestId() throws Exception {
         mockMvc.perform(get("/track-request").param("id", "42"))

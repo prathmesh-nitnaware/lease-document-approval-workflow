@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard')}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Lease Approval Workflow</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="app-body">
+
+    <!-- Shared Navigation -->
+    <header th:replace="~{fragments/layout :: navbar('dashboard')}"></header>
+
+    <!-- Shared Flash Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main id="main-content" class="container container-xl" style="padding-top: var(--space-8); padding-bottom: var(--space-12);">
+        <!-- Dashboard Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; gap: var(--space-4);">
+            <div>
+                <span style="font-size: var(--font-xs); font-weight: var(--font-weight-bold); color: var(--primary-400); text-transform: uppercase; letter-spacing: 0.08em;">Workflow Overview</span>
+                <h1 style="font-size: var(--font-3xl); font-weight: 800; color: #ffffff; margin-top: 4px;">Operations Dashboard</h1>
+                <p style="font-size: var(--font-sm); color: var(--text-muted); margin-top: 4px;">Monitor lease submission statuses, reviewer throughput, and document lifecycle metrics.</p>
+            </div>
+            <div style="display: flex; gap: var(--space-3);">
+                <a th:href="@{/submit-request}" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Submit Request</span>
+                </a>
+                <a th:href="@{/reviewer-queue}" class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Review Queue</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-8);">
+            <div class="card" style="padding: var(--space-5);">
+                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Total Submissions</div>
+                <div style="font-size: var(--font-3xl); font-weight: 800; color: #ffffff; margin: 8px 0 4px;">24</div>
+                <div style="font-size: var(--font-xs); color: var(--primary-300);">Across Commercial &amp; Residential</div>
+            </div>
+            <div class="card" style="padding: var(--space-5);">
+                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Under Review</div>
+                <div style="font-size: var(--font-3xl); font-weight: 800; color: #60a5fa; margin: 8px 0 4px;">6</div>
+                <div style="font-size: var(--font-xs); color: var(--text-muted);">Awaiting reviewer decision</div>
+            </div>
+            <div class="card" style="padding: var(--space-5);">
+                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Approved</div>
+                <div style="font-size: var(--font-3xl); font-weight: 800; color: #34d399; margin: 8px 0 4px;">15</div>
+                <div style="font-size: var(--font-xs); color: var(--text-muted);">Valid agreements completed</div>
+            </div>
+            <div class="card" style="padding: var(--space-5);">
+                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Changes Requested</div>
+                <div style="font-size: var(--font-3xl); font-weight: 800; color: #fbbf24; margin: 8px 0 4px;">3</div>
+                <div style="font-size: var(--font-xs); color: var(--text-muted);">Pending requester resubmission</div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Card -->
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 class="card-title">Recent Lease Requests</h2>
+                    <p class="card-subtitle">Active submissions and current workflow status</p>
+                </div>
+                <span class="badge" style="background-color: var(--primary-subtle); color: var(--primary-300); padding: 4px 10px; border-radius: var(--radius-full); font-size: var(--font-xs); font-weight: 600;">Live Feed</span>
+            </div>
+            <div class="card-body" style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: var(--font-sm);">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-default); text-align: left; color: var(--text-muted);">
+                            <th style="padding: var(--space-3) var(--space-6); font-weight: 600;">Request ID</th>
+                            <th style="padding: var(--space-3) var(--space-6); font-weight: 600;">Requester</th>
+                            <th style="padding: var(--space-3) var(--space-6); font-weight: 600;">Lease Type</th>
+                            <th style="padding: var(--space-3) var(--space-6); font-weight: 600;">Status</th>
+                            <th style="padding: var(--space-3) var(--space-6); font-weight: 600;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--border-subtle);">
+                            <td style="padding: var(--space-4) var(--space-6); font-family: var(--font-family-mono); color: var(--primary-300); font-weight: 600;">#1042</td>
+                            <td style="padding: var(--space-4) var(--space-6); color: var(--text-primary);">Apex Industrial Corp</td>
+                            <td style="padding: var(--space-4) var(--space-6); color: var(--text-secondary);">Commercial</td>
+                            <td style="padding: var(--space-4) var(--space-6);"><span class="status-badge status-badge-under-review"><span class="status-dot"></span> Under Review</span></td>
+                            <td style="padding: var(--space-4) var(--space-6);"><a th:href="@{/track-request/1042}" style="color: var(--primary-400); text-decoration: none; font-weight: 500;">View Details &rarr;</a></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-subtle);">
+                            <td style="padding: var(--space-4) var(--space-6); font-family: var(--font-family-mono); color: var(--primary-300); font-weight: 600;">#1041</td>
+                            <td style="padding: var(--space-4) var(--space-6); color: var(--text-primary);">Beacon Realty Partners</td>
+                            <td style="padding: var(--space-4) var(--space-6); color: var(--text-secondary);">Residential</td>
+                            <td style="padding: var(--space-4) var(--space-6);"><span class="status-badge status-badge-approved"><span class="status-dot"></span> Approved</span></td>
+                            <td style="padding: var(--space-4) var(--space-6);"><a th:href="@{/track-request/1041}" style="color: var(--primary-400); text-decoration: none; font-weight: 500;">View Details &rarr;</a></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-subtle);">
+                            <td style="padding: var(--space-4) var(--space-6); font-family: var(--font-family-mono); color: var(--primary-300); font-weight: 600;">#1040</td>
+                            <td style="padding: var(--space-4) var(--space-6); color: var(--text-primary);">Cascade Logistics</td>
+                            <td style="padding: var(--space-4) var(--space-6); color: var(--text-secondary);">Equipment</td>
+                            <td style="padding: var(--space-4) var(--space-6);"><span class="status-badge status-badge-changes-requested"><span class="status-dot"></span> Changes Requested</span></td>
+                            <td style="padding: var(--space-4) var(--space-6);"><a th:href="@{/track-request/1040}" style="color: var(--primary-400); text-decoration: none; font-weight: 500;">View Details &rarr;</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Shared Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>
