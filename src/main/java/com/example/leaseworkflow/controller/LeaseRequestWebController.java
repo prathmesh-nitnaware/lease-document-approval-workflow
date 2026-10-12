@@ -50,7 +50,7 @@ public class LeaseRequestWebController {
         return "submit-request";
     }
 
-    @GetMapping("/reviewer-queue")
+    @GetMapping({"/reviewer-queue", "/review-queue"})
     public String showReviewerQueue(
             @RequestParam(value = "status", required = false) String statusFilter,
             Model model) {

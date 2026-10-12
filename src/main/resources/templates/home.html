@@ -1,15 +1,213 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Home')}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lease Document Approval Workflow</title>
+    <title>Home — Lease Approval Workflow</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
-<body>
+<body class="app-body">
 
-    <h1>Lease Document Approval Workflow</h1>
+    <!-- Shared Navigation -->
+    <header th:replace="~{fragments/layout :: navbar('home')}"></header>
 
-    <p>Spring Boot application is running successfully.</p>
+    <!-- Shared Flash Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section" aria-labelledby="hero-title">
+            <div class="container container-xl">
+                <div class="hero-grid">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <span class="status-dot"></span>
+                            <span>Enterprise Workflow</span>
+                        </div>
+                        <h1 id="hero-title" class="hero-title">Automated Lease Document Approval Workflow</h1>
+                        <p class="hero-subtitle">
+                            Submit lease requests, automatically validate supporting documents, and track multi-stage reviewer approvals with end-to-end transparency.
+                        </p>
+                        <div class="hero-cta-group">
+                            <a th:href="@{/submit-request}" class="btn btn-primary btn-lg">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 5v14M5 12h14"></path>
+                                </svg>
+                                <span>Submit a Lease Request</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Workflow Preview Composition -->
+                    <div class="hero-preview" aria-hidden="true">
+                        <div class="preview-window">
+                            <div class="preview-window-bar">
+                                <span class="preview-window-dot dot-red"></span>
+                                <span class="preview-window-dot dot-yellow"></span>
+                                <span class="preview-window-dot dot-green"></span>
+                                <span class="preview-window-title">REQUEST #LR-2026-084</span>
+                            </div>
+                            <div class="preview-body">
+                                <div class="preview-header-row">
+                                    <div>
+                                        <div class="preview-request-id">Lease Request #1042</div>
+                                        <div style="font-size: var(--font-xs); color: var(--text-muted); margin-top: 2px;">Property: Skyline Logistics Park &bull; Unit 4B</div>
+                                    </div>
+                                    <span class="status-badge status-badge-under-review">
+                                        <span class="status-dot"></span>
+                                        <span>Under Review</span>
+                                    </span>
+                                </div>
+                                <div class="preview-progress-steps">
+                                    <span class="preview-step-pill completed">&#10003; 1. Submitted</span>
+                                    <span class="preview-step-pill completed">&#10003; 2. Validated</span>
+                                    <span class="preview-step-pill active">&bull; 3. In Review</span>
+                                    <span class="preview-step-pill upcoming">4. Decision</span>
+                                </div>
+                                <div class="preview-doc-card">
+                                    <div class="preview-doc-name">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-400); flex-shrink: 0;">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        </svg>
+                                        <span>Commercial_Lease_Agreement.pdf</span>
+                                    </div>
+                                    <span class="preview-doc-valid">&#10003; PDF Valid &bull; 2.4 MB</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-xs); color: var(--text-muted); padding-top: var(--space-2); border-top: 1px solid var(--border-subtle);">
+                                    <span>Requester: Apex Industrial Corp</span>
+                                    <span>Action: Pending Reviewer Approval</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="section-wrapper" aria-labelledby="how-it-works-title">
+            <div class="container container-xl">
+                <div class="section-header">
+                    <span class="section-tag">Lifecycle Overview</span>
+                    <h2 id="how-it-works-title" class="section-title">How It Works</h2>
+                    <p class="section-subtitle">
+                        A structured three-step lifecycle ensuring complete document integrity, automated validation checks, and organized reviewer operations.
+                    </p>
+                </div>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number-badge">1</div>
+                        <h3 class="step-card-title">Submit</h3>
+                        <p class="step-card-desc">
+                            Requesters submit lease request details along with supporting lease documentation through the standardized submission form.
+                        </p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number-badge">2</div>
+                        <h3 class="step-card-title">Validate</h3>
+                        <p class="step-card-desc">
+                            The application validates submitted documents, verifying file extension compatibility and enforcing upload size boundaries.
+                        </p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number-badge">3</div>
+                        <h3 class="step-card-title">Review &amp; Track</h3>
+                        <p class="step-card-desc">
+                            Reviewers process submissions to approve, reject, or request changes with audit comments, while requesters track status in real time.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Grid Section -->
+        <section class="section-wrapper" aria-labelledby="features-title">
+            <div class="container container-xl">
+                <div class="section-header">
+                    <span class="section-tag">Core Capabilities</span>
+                    <h2 id="features-title" class="section-title">Operational Features</h2>
+                    <p class="section-subtitle">
+                        Reliable tooling to manage the lease document approval lifecycle without manual overhead.
+                    </p>
+                </div>
+                <div class="features-grid">
+                    <!-- Feature 1: Document Validation -->
+                    <div class="feature-card">
+                        <div class="feature-icon-box" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <path d="m9 15 2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-card-title">Document Validation</h3>
+                            <p class="feature-card-desc">
+                                Automatically validates uploaded lease documents against supported file extensions (PDF, DOCX) and size limits upon submission.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2: Review Workflow & Audit Trail -->
+                    <div class="feature-card">
+                        <div class="feature-icon-box" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                                <path d="m9 16 2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-card-title">Review Workflow and Audit Trail</h3>
+                            <p class="feature-card-desc">
+                                Reviewers evaluate pending items to approve, reject, or request revisions with recorded comments tracking every decision.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3: Request Status Tracking -->
+                    <div class="feature-card">
+                        <div class="feature-icon-box" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-card-title">Request Status Tracking</h3>
+                            <p class="feature-card-desc">
+                                Provides transparency across the full lifecycle from SUBMITTED to UNDER_REVIEW, APPROVED, REJECTED, or CHANGES_REQUESTED.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 4: Controlled Document Handling -->
+                    <div class="feature-card">
+                        <div class="feature-icon-box" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                <line x1="12" y1="11" x2="12" y2="17"></line>
+                                <line x1="9" y1="14" x2="15" y2="14"></line>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-card-title">Controlled Document Handling</h3>
+                            <p class="feature-card-desc">
+                                Stores submitted files in designated server directories with controlled access endpoints, preventing direct uncontrolled file exposure.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Shared Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 
 </body>
 </html>
