@@ -1,150 +1,198 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reviewer Queue')}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reviewer Queue - Lease Document Approval</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --success: #059669;
-            --danger: #dc2626;
-            --warning: #d97706;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-main); padding: 2rem; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .header h1 { font-size: 1.8rem; font-weight: 700; }
-
-        .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-        .alert-success { background: #064e3b; color: #6ee7b7; border: 1px solid #047857; }
-        .alert-danger { background: #451a1a; color: #fca5a5; border: 1px solid #991b1b; }
-
-        .queue-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
-        .queue-table th, .queue-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
-        .queue-table th { background: #0f172a; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
-
-        .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .badge-submitted { background: #1e40af; color: #dbeafe; }
-        .badge-under_review { background: #7c2d12; color: #ffedd5; }
-        .badge-approved { background: #065f46; color: #d1fae5; }
-        .badge-rejected { background: #991b1b; color: #fee2e2; }
-
-        .btn { padding: 0.4rem 0.8rem; border-radius: 4px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-approve { background: var(--success); color: white; }
-        .btn-reject { background: var(--danger); color: white; }
-        .btn-changes { background: var(--warning); color: white; }
-
-        .doc-list { list-style: none; font-size: 0.85rem; }
-        .doc-list li { margin-bottom: 0.25rem; color: var(--text-muted); }
-
-        .action-group { display: flex; gap: 0.5rem; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
-        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 8px; width: 400px; border: 1px solid var(--border-color); }
-        textarea { width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid var(--border-color); color: white; border-radius: 4px; margin: 0.5rem 0 1rem 0; }
-    </style>
+    <title>Reviewer Queue — Lease Document Approval</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
-<body>
+<body class="app-body">
 
-<div class="container">
-    <div class="header">
-        <h1>Reviewer Queue</h1>
-        <a href="/submit-request" style="color: var(--primary); text-decoration: none; font-weight: 600;">+ New Submission Form</a>
-    </div>
+    <!-- Shared Navigation -->
+    <header th:replace="~{fragments/layout :: navbar('reviewer')}"></header>
 
-    <div th:if="${successMessage}" class="alert alert-success" id="success-alert" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert" th:text="${errorMessage}"></div>
+    <!-- Shared Flash Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
 
-    <table class="queue-table" id="reviewer-queue-table">
-        <thead>
-            <tr>
-                <th>Req ID</th>
-                <th>Requester</th>
-                <th>Lease Type</th>
-                <th>Submitted Date</th>
-                <th>Attached Documents</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="req : ${requests}" th:id="'request-row-' + ${req.id}">
-                <td><strong th:id="'req-id-' + ${req.id}" th:text="'#' + ${req.id}">#1</strong></td>
-                <td th:id="'req-requester-' + ${req.id}" th:text="${req.requesterId}">Jane Doe</td>
-                <td th:id="'req-type-' + ${req.id}" th:text="${req.leaseType}">Commercial</td>
-                <td th:id="'req-date-' + ${req.id}" th:text="${#temporals.format(req.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-07</td>
-                <td>
-                    <ul class="doc-list" th:id="'req-docs-' + ${req.id}">
-                        <li th:each="doc : ${req.documents}" th:text="${doc.fileName} + ' (' + ${doc.fileType} + ')'">doc.pdf</li>
-                    </ul>
-                </td>
-                <td>
-                    <span th:id="'req-status-' + ${req.id}" class="badge badge-submitted" th:text="${req.status}">SUBMITTED</span>
-                </td>
-                <td>
-                    <div class="action-group">
-                        <form action="/reviewer/approve" method="post" style="display:inline;">
-                            <input type="hidden" name="requestId" th:value="${req.id}"/>
-                            <button type="submit" class="btn btn-approve" th:id="'approve-btn-' + ${req.id}">Approve</button>
-                        </form>
-
-                        <button class="btn btn-changes" th:id="'changes-btn-' + ${req.id}" th:onclick="'openModal(\'changes\', ' + ${req.id} + ')'">Request Changes</button>
-                        <button class="btn btn-reject" th:id="'reject-btn-' + ${req.id}" th:onclick="'openModal(\'reject\', ' + ${req.id} + ')'">Reject</button>
-                    </div>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(requests)}" id="empty-queue-row">
-                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No pending requests in queue.</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-<!-- Modal for Comment -->
-<div id="commentModal" class="modal">
-    <div class="modal-content">
-        <h3 id="modalTitle">Add Comment</h3>
-        <form id="modalForm" method="post">
-            <input type="hidden" name="requestId" id="modalRequestId"/>
-            <label for="modalComment" style="font-size: 0.85rem; font-weight: 600;">Comment / Reason (Mandatory):</label>
-            <textarea name="comment" id="modalComment" rows="4" required></textarea>
-            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-                <button type="button" class="btn" id="modalCancelBtn" style="background: #475569; color: white;" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-approve" id="modalSubmitBtn">Submit</button>
+    <main id="main-content" class="container container-xl" style="padding-top: var(--space-8); padding-bottom: var(--space-12);">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4);">
+            <div>
+                <span style="font-size: var(--font-xs); font-weight: var(--font-weight-bold); color: var(--primary-400); text-transform: uppercase; letter-spacing: 0.08em;">Reviewer Operations</span>
+                <h1 style="font-size: var(--font-3xl); font-weight: 800; color: #ffffff; margin-top: 4px;">Reviewer Queue</h1>
+                <p style="font-size: var(--font-sm); color: var(--text-muted); margin-top: 4px;">Evaluate incoming lease requests, inspect verified documents, and take audit-logged decisions.</p>
             </div>
-        </form>
+            <a th:href="@{/submit-request}" class="btn btn-primary" id="queue-header-new-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>New Submission Form</span>
+            </a>
+        </div>
+
+        <!-- Feedback Alerts -->
+        <div th:if="${successMessage}" class="alert alert-success" id="success-alert" style="background: #064e3b; color: #6ee7b7; border: 1px solid #047857; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert" style="background: #451a1a; color: #fca5a5; border: 1px solid #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;" th:text="${errorMessage}"></div>
+
+        <!-- Filter Controls Card: Status Chips & Search Box -->
+        <div class="card" style="padding: var(--space-4) var(--space-6); margin-bottom: var(--space-6);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4);">
+                <!-- Status Filter Chips -->
+                <div style="display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center;" id="status-chips">
+                    <span style="font-size: var(--font-xs); color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-right: 4px;">Filter:</span>
+                    <button type="button" class="btn btn-sm btn-primary active-chip" data-status="ALL" onclick="filterByStatus('ALL', this)">All</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-status="SUBMITTED" onclick="filterByStatus('SUBMITTED', this)">Submitted</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-status="UNDER_REVIEW" onclick="filterByStatus('UNDER_REVIEW', this)">Under Review</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-status="CHANGES_REQUESTED" onclick="filterByStatus('CHANGES_REQUESTED', this)">Changes Requested</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-status="APPROVED" onclick="filterByStatus('APPROVED', this)">Approved</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-status="REJECTED" onclick="filterByStatus('REJECTED', this)">Rejected</button>
+                </div>
+
+                <!-- Search Box -->
+                <div style="position: relative; min-width: 260px;">
+                    <input type="text" id="queue-search" placeholder="Search by requester, type, or ID..." oninput="handleSearch()"
+                           style="width: 100%; padding: 0.5rem 0.75rem 0.5rem 2rem; background: var(--bg-surface-raised); border: 1px solid var(--border-default); border-radius: var(--radius-md); color: var(--text-primary); font-size: var(--font-sm);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         style="position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card" style="overflow: hidden;">
+            <div style="overflow-x: auto;">
+                <table class="queue-table" id="reviewer-queue-table" style="width: 100%; border-collapse: collapse; font-size: var(--font-sm);">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-default); text-align: left; background: var(--bg-surface-raised); color: var(--text-muted);">
+                            <th style="padding: 1rem; font-weight: 600;">Req ID</th>
+                            <th style="padding: 1rem; font-weight: 600;">Requester</th>
+                            <th style="padding: 1rem; font-weight: 600;">Lease Type</th>
+                            <th style="padding: 1rem; font-weight: 600;">Submitted Date</th>
+                            <th style="padding: 1rem; font-weight: 600;">Attached Documents</th>
+                            <th style="padding: 1rem; font-weight: 600;">Status</th>
+                            <th style="padding: 1rem; font-weight: 600;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="queue-tbody">
+                        <tr th:each="req : ${requests}" th:id="'request-row-' + ${req.id}" th:attr="data-status=${req.status}" style="border-bottom: 1px solid var(--border-subtle);">
+                            <td style="padding: 1rem;"><strong th:id="'req-id-' + ${req.id}" th:text="'#' + ${req.id}" style="font-family: var(--font-family-mono); color: var(--primary-300);">#1</strong></td>
+                            <td style="padding: 1rem;" th:id="'req-requester-' + ${req.id}" th:text="${req.requesterId}">Jane Doe</td>
+                            <td style="padding: 1rem;" th:id="'req-type-' + ${req.id}" th:text="${req.leaseType}">Commercial</td>
+                            <td style="padding: 1rem;" th:id="'req-date-' + ${req.id}" th:text="${#temporals.format(req.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-07</td>
+                            <td style="padding: 1rem;">
+                                <ul class="doc-list" th:id="'req-docs-' + ${req.id}" style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+                                    <li th:each="doc : ${req.documents}" th:text="${doc.fileName} + ' (' + ${doc.fileType} + ')'" style="color: var(--text-muted); margin-bottom: 2px;">doc.pdf</li>
+                                </ul>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <span th:id="'req-status-' + ${req.id}" class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(req.status)}" th:text="${req.status}" style="padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem;">SUBMITTED</span>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <div class="action-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <form action="/reviewer/approve" method="post" style="display:inline;">
+                                        <input type="hidden" name="requestId" th:value="${req.id}"/>
+                                        <button type="submit" class="btn btn-sm btn-success" th:id="'approve-btn-' + ${req.id}" style="background: var(--success-600); border: none; color: white;">Approve</button>
+                                    </form>
+
+                                    <button class="btn btn-sm btn-warning" th:id="'changes-btn-' + ${req.id}" th:onclick="'openModal(\'changes\', ' + ${req.id} + ')'" style="background: var(--warning-600); border: none; color: white;">Request Changes</button>
+                                    <button class="btn btn-sm btn-danger" th:id="'reject-btn-' + ${req.id}" th:onclick="'openModal(\'reject\', ' + ${req.id} + ')'" style="background: var(--danger-600); border: none; color: white;">Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(requests)}" id="empty-queue-row">
+                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">No requests in queue.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Comment (Frozen Selectors: commentModal, modalComment, modalSubmitBtn, modalCancelBtn) -->
+    <div id="commentModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); justify-content: center; align-items: center; z-index: 1050;">
+        <div class="modal-content" style="background: var(--bg-surface-raised); padding: 2rem; border-radius: 8px; width: 440px; max-width: 90%; border: 1px solid var(--border-default);">
+            <h3 id="modalTitle" style="color: white; font-size: var(--font-lg); margin-bottom: 1rem;">Add Comment</h3>
+            <form id="modalForm" method="post">
+                <input type="hidden" name="requestId" id="modalRequestId"/>
+                <label for="modalComment" style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 0.4rem;">Comment / Reason (Mandatory):</label>
+                <textarea name="comment" id="modalComment" rows="4" required style="width: 100%; padding: 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-default); color: white; border-radius: 4px; margin-bottom: 1rem;"></textarea>
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary" id="modalCancelBtn" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="modalSubmitBtn">Submit</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<script>
-    function openModal(type, requestId) {
-        document.getElementById('modalRequestId').value = requestId;
-        document.getElementById('modalComment').value = '';
-        const modal = document.getElementById('commentModal');
-        const form = document.getElementById('modalForm');
-        const title = document.getElementById('modalTitle');
+    <!-- Shared Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 
-        if (type === 'reject') {
-            title.textContent = 'Reject Request #' + requestId;
-            form.action = '/reviewer/reject';
-        } else {
-            title.textContent = 'Request Changes for #' + requestId;
-            form.action = '/reviewer/request-changes';
+    <!-- Bundled Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        var currentStatusFilter = 'ALL';
+
+        function filterByStatus(status, btn) {
+            currentStatusFilter = status;
+            document.querySelectorAll('#status-chips button').forEach(function(b) {
+                b.classList.remove('btn-primary', 'active-chip');
+                b.classList.add('btn-secondary');
+            });
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary', 'active-chip');
+            applyFilters();
         }
-        modal.style.display = 'flex';
-    }
 
-    function closeModal() {
-        document.getElementById('commentModal').style.display = 'none';
-    }
-</script>
+        function handleSearch() {
+            applyFilters();
+        }
 
+        function applyFilters() {
+            var searchTerm = (document.getElementById('queue-search').value || '').trim().toLowerCase();
+            var rows = document.querySelectorAll('#queue-tbody tr[id^="request-row-"]');
+
+            rows.forEach(function(row) {
+                var rowStatus = (row.getAttribute('data-status') || '').toUpperCase();
+                var text = row.innerText.toLowerCase();
+
+                var matchesStatus = (currentStatusFilter === 'ALL' || rowStatus === currentStatusFilter);
+                var matchesSearch = (!searchTerm || text.indexOf(searchTerm) !== -1);
+
+                if (matchesStatus && matchesSearch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function openModal(type, requestId) {
+            document.getElementById('modalRequestId').value = requestId;
+            document.getElementById('modalComment').value = '';
+            const modal = document.getElementById('commentModal');
+            const form = document.getElementById('modalForm');
+            const title = document.getElementById('modalTitle');
+
+            if (type === 'reject') {
+                title.textContent = 'Reject Request #' + requestId;
+                form.action = '/reviewer/reject';
+            } else {
+                title.textContent = 'Request Changes for #' + requestId;
+                form.action = '/reviewer/request-changes';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('commentModal').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

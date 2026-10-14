@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
 
     private final String appVersion;
+    private final com.example.leaseworkflow.service.DashboardService dashboardService;
 
-    public HomeController(@Value("${app.version:1.0.0}") String appVersion) {
+    public HomeController(@Value("${app.version:1.0.0}") String appVersion,
+                          com.example.leaseworkflow.service.DashboardService dashboardService) {
         this.appVersion = appVersion;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping("/")
@@ -23,6 +26,7 @@ public class HomeController {
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         model.addAttribute("appVersion", appVersion);
+        model.addAttribute("stats", dashboardService.getDashboardStats());
         return "dashboard";
     }
 

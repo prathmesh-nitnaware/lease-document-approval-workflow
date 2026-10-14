@@ -148,7 +148,7 @@
 
 html {
   font-size: 16px;
-  scroll-behavior: smooth;
+  scroll-behavior: auto !important;
 }
 
 body {
@@ -227,9 +227,7 @@ a:hover {
 .app-navbar {
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  position: relative;
   box-shadow: var(--shadow-sm);
 }
 
