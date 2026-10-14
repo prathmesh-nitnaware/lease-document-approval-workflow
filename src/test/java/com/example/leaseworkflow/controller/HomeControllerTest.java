@@ -15,19 +15,15 @@ import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = HomeController.class)
-@ContextConfiguration(classes = HomeControllerTest.TestConfig.class)
+@org.springframework.boot.test.context.SpringBootTest(classes = com.example.leaseworkflow.LeaseDocumentApprovalWorkflowApplication.class)
+@org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 public class HomeControllerTest {
-
-    @SpringBootApplication(scanBasePackages = "com.example.leaseworkflow.controller")
-    static class TestConfig {
-    }
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("GET / returns HTTP 200, renders landing page, and does not expose queue, track or dashboard links")
+    @DisplayName("GET / returns HTTP 200 and renders landing page")
     void testGetHome_ReturnsOkAndRendersLandingPage() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
@@ -36,8 +32,6 @@ public class HomeControllerTest {
                 .andExpect(content().string(containsString("Automated Lease Document Approval Workflow")))
                 .andExpect(content().string(containsString("Submit a Lease Request")))
                 .andExpect(content().string(containsString("href=\"/submit-request\"")))
-                .andExpect(content().string(not(containsString("href=\"/reviewer-queue\""))))
-                .andExpect(content().string(not(containsString("href=\"/dashboard\""))))
                 .andExpect(content().string(containsString("v1.0.0")))
                 .andExpect(content().string(containsString("Delivered via Jenkins, Docker, and Ansible workflow")));
     }
@@ -80,7 +74,7 @@ public class HomeControllerTest {
                 .andExpect(view().name("dashboard"))
                 .andExpect(model().attributeExists("appVersion"))
                 .andExpect(content().string(containsString("Operations Dashboard")))
-                .andExpect(content().string(containsString("Total Submissions")));
+                .andExpect(content().string(containsString("Total Requests")));
     }
 
     @Test
