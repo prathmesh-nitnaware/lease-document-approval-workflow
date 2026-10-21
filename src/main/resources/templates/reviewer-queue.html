@@ -27,13 +27,19 @@
                 <h1 style="font-size: var(--font-3xl); font-weight: 800; color: #ffffff; margin-top: 4px;">Reviewer Queue</h1>
                 <p style="font-size: var(--font-sm); color: var(--text-muted); margin-top: 4px;">Evaluate incoming lease requests, inspect verified documents, and take audit-logged decisions.</p>
             </div>
-            <a th:href="@{/submit-request}" class="btn btn-primary" id="queue-header-new-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                <span>New Submission Form</span>
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a th:href="@{/reviewer/export-csv}" class="btn btn-outline-secondary d-flex align-items-center gap-1" id="export-csv-btn">
+                    <i class="bi bi-file-earmark-spreadsheet text-success"></i>
+                    <span>Export CSV</span>
+                </a>
+                <a th:href="@{/submit-request}" class="btn btn-primary" id="queue-header-new-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>New Submission Form</span>
+                </a>
+            </div>
         </div>
 
         <!-- Feedback Alerts -->
@@ -141,6 +147,13 @@
 
                                     <button class="btn btn-sm btn-warning" th:id="'changes-btn-' + ${req.id}" th:onclick="'openModal(\'changes\', ' + ${req.id} + ')'" style="background: var(--warning-600); border: none; color: white;">Request Changes</button>
                                     <button class="btn btn-sm btn-danger" th:id="'reject-btn-' + ${req.id}" th:onclick="'openModal(\'reject\', ' + ${req.id} + ')'" style="background: var(--danger-600); border: none; color: white;">Reject</button>
+
+                                    <a th:href="@{'/track-request/' + ${req.id}}" class="btn btn-sm btn-outline-info" title="Inspect &amp; AI Audit">
+                                        <i class="bi bi-search"></i> Details
+                                    </a>
+                                    <a th:if="${req.status == 'APPROVED'}" th:href="@{'/requests/' + ${req.id} + '/certificate'}" class="btn btn-sm btn-outline-success" title="View Approval Certificate">
+                                        <i class="bi bi-award"></i> Cert
+                                    </a>
                                 </div>
                             </td>
                         </tr>

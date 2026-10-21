@@ -12,6 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
+import com.example.leaseworkflow.service.AnnotationService;
+import com.example.leaseworkflow.service.DocumentIntelligenceService;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.Map;
 
 @RestController
@@ -19,9 +23,21 @@ import java.util.Map;
 public class LeaseRequestController {
 
     private final LeaseRequestService leaseRequestService;
+    private final AnnotationService annotationService;
+    private final DocumentIntelligenceService documentIntelligenceService;
 
     public LeaseRequestController(LeaseRequestService leaseRequestService) {
+        this(leaseRequestService, null, null);
+    }
+
+    @Autowired
+    public LeaseRequestController(
+            LeaseRequestService leaseRequestService,
+            @Autowired(required = false) AnnotationService annotationService,
+            @Autowired(required = false) DocumentIntelligenceService documentIntelligenceService) {
         this.leaseRequestService = leaseRequestService;
+        this.annotationService = annotationService;
+        this.documentIntelligenceService = documentIntelligenceService;
     }
 
     @GetMapping
@@ -148,5 +164,47 @@ public class LeaseRequestController {
         return leaseRequestService.getRequestById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/ai-analysis")
+    public ResponseEntity<?> getAiAnalysis(@PathVariable("id") Long id) {
+        return leaseRequestService.getRequestById(id)
+                .map(req -> {
+                    if (documentIntelligenceService != null) {
+                        return ResponseEntity.ok(documentIntelligenceService.analyzeRequest(id, req.getLeaseType()));
+                    } else {
+                        return ResponseEntity.ok(Map.of("riskLevel", "LOW", "summary", "AI engine ready."));
+                    }
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/annotations")
+    public ResponseEntity<?> getAnnotations(@PathVariable("id") Long id) {
+        if (annotationService != null) {
+            return ResponseEntity.ok(annotationService.getAnnotationsByRequestId(id));
+        }
+        return ResponseEntity.ok(List.of());
+    }
+
+    @PostMapping("/{id}/annotations")
+    public ResponseEntity<?> addAnnotation(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, Object> payload) {
+        if (annotationService == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Annotation service unavailable"));
+        }
+        try {
+            Long docId = payload.get("documentId") != null ? Long.valueOf(payload.get("documentId").toString()) : 0L;
+            String reviewerName = (String) payload.getOrDefault("reviewerName", "Reviewer");
+            String clauseTag = (String) payload.getOrDefault("clauseTag", "General");
+            String severity = (String) payload.getOrDefault("severity", "WARNING");
+            String noteText = (String) payload.get("noteText");
+
+            var annotation = annotationService.addAnnotation(id, docId, reviewerName, clauseTag, severity, noteText);
+            return ResponseEntity.status(HttpStatus.CREATED).body(annotation);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

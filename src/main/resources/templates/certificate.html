@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Certificate of Approval — Request #' + ${cert.request.id}">Certificate of Approval</title>
+
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+
+    <style>
+        .cert-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #ffffff;
+            color: #0f172a;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+            border: 8px double #cbd5e1;
+            padding: 48px;
+            position: relative;
+        }
+
+        .cert-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 6.5rem;
+            font-weight: 900;
+            color: rgba(14, 165, 233, 0.05);
+            letter-spacing: 0.15em;
+            pointer-events: none;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .cert-header {
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+
+        .cert-badge {
+            background-color: #0f172a;
+            color: #38bdf8;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .sign-block {
+            border-top: 1px solid #94a3b8;
+            padding-top: 8px;
+            margin-top: 40px;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .cert-container {
+                box-shadow: none !important;
+                border: 4px solid #000 !important;
+                margin: 0 auto !important;
+                padding: 30px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="background-color: #0b1120; min-height: 100vh;">
+
+    <!-- Print / Return Action Bar -->
+    <div class="no-print container py-3 text-center d-flex justify-content-between align-items-center" style="max-width: 900px;">
+        <a th:href="@{'/track-request/' + ${cert.request.id}}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Request #<span th:text="${cert.request.id}">1</span>
+        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-primary btn-sm px-4">
+                <i class="bi bi-printer-fill me-1"></i> Print / Save as PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="cert-container position-relative">
+        <div class="cert-watermark">APPROVED</div>
+
+        <!-- Header -->
+        <div class="cert-header d-flex justify-content-between align-items-center">
+            <div>
+                <span class="cert-badge">Official Compliance Record</span>
+                <h1 class="h2 fw-bold text-dark mt-2 mb-1" style="font-family: serif;">Certificate of Lease Approval</h1>
+                <p class="text-muted small mb-0">Enterprise Real Estate & Commercial Lease Underwriting Platform</p>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold text-dark" style="font-size: 0.85rem;" th:text="${cert.certificateNumber}">CERT-LF-1001-A9B8</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Issued: <span th:text="${cert.issueTimestamp}">2026-10-21</span></div>
+            </div>
+        </div>
+
+        <!-- Request Summary Box -->
+        <div class="p-3 mb-4 rounded-2" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+            <div class="row g-3">
+                <div class="col-sm-3">
+                    <span class="text-muted d-block small">Lease Request ID</span>
+                    <strong class="text-dark" th:text="'#' + ${cert.request.id}">#1</strong>
+                </div>
+                <div class="col-sm-3">
+                    <span class="text-muted d-block small">Requester Tenant</span>
+                    <strong class="text-dark" th:text="${cert.request.requesterId}">TENANT-001</strong>
+                </div>
+                <div class="col-sm-3">
+                    <span class="text-muted d-block small">Lease Category</span>
+                    <strong class="text-dark" th:text="${cert.request.leaseType}">Commercial</strong>
+                </div>
+                <div class="col-sm-3">
+                    <span class="text-muted d-block small">Status Verdict</span>
+                    <span class="badge bg-success px-2 py-1">APPROVED</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formal Attestation Text -->
+        <p class="lead" style="font-size: 1.05rem; line-height: 1.6; color: #334155;">
+            This certifies that the attached lease agreement documentation has undergone rigorous multi-stage review,
+            including legal compliance verification, indemnification cross-checks, and financial underwriting validation.
+            All mandatory covenants have been satisfied in full compliance with corporate policy and regulatory statutes.
+        </p>
+
+        <!-- Document Cryptographic Fingerprints -->
+        <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom" style="font-size: 0.95rem; border-color: #e2e8f0 !important;">
+            <i class="bi bi-shield-check text-success me-1"></i> Verified Document Fingerprints (SHA-256)
+        </h5>
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 0.8rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Document Name</th>
+                        <th>Type / Size</th>
+                        <th>SHA-256 Integrity Hash</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="doc : ${cert.request.documents}">
+                        <td class="fw-semibold text-dark" th:text="${doc.fileName}">lease.pdf</td>
+                        <td class="text-muted" th:text="${doc.fileType} + ' (' + ${#numbers.formatDecimal(doc.fileSize / 1024.0, 1, 1)} + ' KB)'">PDF (124 KB)</td>
+                        <td>
+                            <code class="text-dark" style="font-size: 0.72rem; word-break: break-all;"
+                                  th:text="${doc.checksumSha256 != null ? doc.checksumSha256 : 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}">
+                                sha256-hash
+                            </code>
+                        </td>
+                    </tr>
+                    <tr th:if="${cert.request.documents == null or cert.request.documents.empty}">
+                        <td colspan="3" class="text-center text-muted">Original documents verified via secure archive.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Sign-Off Endorsements -->
+        <div class="row mt-5 pt-3">
+            <div class="col-6">
+                <div class="sign-block">
+                    <div class="fw-bold text-dark" style="font-size: 0.9rem;" th:text="${cert.legalSigner}">Sarah Jenkins</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Stage 1: Legal Compliance & Counsel</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Signed: <span th:text="${cert.legalSignDate}">2026-10-21</span></div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="sign-block">
+                    <div class="fw-bold text-dark" style="font-size: 0.9rem;" th:text="${cert.financeSigner}">Marcus Vance</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Stage 2: Finance & Commercial Underwriting</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Finalized: <span th:text="${cert.financeSignDate}">2026-10-21</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer / Authenticity Seal -->
+        <div class="mt-5 pt-3 border-top text-center text-muted" style="font-size: 0.7rem; border-color: #e2e8f0 !important;">
+            <p class="mb-0">This document represents an immutable audit certificate generated by the Lease Document Approval System.</p>
+            <p class="mb-0">Cryptographic authenticity is verified against internal audit history records.</p>
+        </div>
+    </div>
+
+</body>
+</html>

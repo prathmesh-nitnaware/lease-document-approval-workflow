@@ -79,6 +79,21 @@ public class FileStorageService {
         }
     }
 
+    public byte[] loadFileBytes(String storagePath) {
+        if (storagePath == null || storagePath.isBlank()) {
+            return new byte[0];
+        }
+        try {
+            Path path = Paths.get(storagePath).normalize();
+            if (Files.exists(path) && Files.isReadable(path)) {
+                return Files.readAllBytes(path);
+            }
+        } catch (IOException e) {
+            log.warn("Could not read file bytes from {}: {}", storagePath, e.getMessage());
+        }
+        return new byte[0];
+    }
+
     public Resource loadAsResource(String storagePath) {
         try {
             Path filePath = Paths.get(storagePath).normalize();
@@ -92,6 +107,8 @@ public class FileStorageService {
             throw new IllegalArgumentException("Invalid file path: " + storagePath, e);
         }
     }
+
+
 
     public String detectMimeType(byte[] bytes, String fileName) {
         if (bytes != null && bytes.length >= 4) {

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
 <!-- ========================================================================
@@ -110,6 +110,53 @@
                                 </a>
                             </li>
                         </ul>
+                    </div>
+
+                    <!-- Notification Bell Dropdown -->
+                    <div class="dropdown notification-dropdown" id="notificationDropdownContainer">
+                        <button class="btn btn-outline-secondary btn-sm position-relative d-flex align-items-center justify-content-center p-2 rounded-2"
+                                type="button" id="notificationBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notification Center">
+                            <i class="bi bi-bell-fill fs-6 text-white"></i>
+                            <span th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark"
+                                  style="font-size: 0.65rem;"
+                                  th:text="${unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}">
+                                3
+                            </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow-lg notification-menu p-0"
+                             aria-labelledby="notificationBellBtn"
+                             style="min-width: 330px; max-width: 380px; background-color: var(--bg-surface-elevated, #1e293b); border: 1px solid var(--border-default, #334155);">
+                            <div class="d-flex align-items-center justify-content-between p-3 border-bottom" style="border-color: var(--border-subtle, #334155) !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-bell text-primary"></i>
+                                    <span class="fw-bold text-white small">Notifications</span>
+                                </div>
+                                <form th:action="@{/notifications/mark-all-read}" method="post" class="m-0 p-0">
+                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-muted" style="font-size: 0.72rem;">
+                                        Mark all read
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="notification-list p-2" style="max-height: 360px; overflow-y: auto;">
+                                <div th:if="${recentNotifications == null or recentNotifications.empty}" class="p-3 text-center text-muted small">
+                                    <i class="bi bi-check2-all d-block fs-4 text-secondary mb-1"></i>
+                                    No new notifications
+                                </div>
+                                <div th:each="n : ${recentNotifications}" class="p-2 rounded-2 mb-1 notification-item"
+                                     th:style="${n.isRead ? 'opacity: 0.7;' : 'background-color: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8;'}">
+                                    <div class="d-flex align-items-start justify-content-between gap-2">
+                                        <div class="flex-grow-1">
+                                            <a th:href="@{${n.linkUrl}}" class="text-decoration-none d-block">
+                                                <div class="fw-semibold text-white small" th:text="${n.title}">Notification Title</div>
+                                                <div class="text-secondary" style="font-size: 0.75rem;" th:text="${n.message}">Details text</div>
+                                            </a>
+                                            <div class="text-muted mt-1" style="font-size: 0.65rem;" th:text="${#temporals.format(n.createdAt, 'MMM dd, HH:mm')}">Just now</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <a th:href="@{/submit-request}" class="btn btn-primary btn-sm" id="nav-cta-new-request">

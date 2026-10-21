@@ -31,6 +31,7 @@ public class LeaseRequestService {
     private final StatusHistoryRepository statusHistoryRepository;
     private final ValidationService validationService;
     private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     public LeaseRequestService(
             LeaseRequestRepository leaseRequestRepository,
@@ -38,7 +39,17 @@ public class LeaseRequestService {
             ReviewActionRepository reviewActionRepository,
             StatusHistoryRepository statusHistoryRepository,
             ValidationService validationService) {
-        this(leaseRequestRepository, documentRepository, reviewActionRepository, statusHistoryRepository, validationService, new FileStorageService("uploads/documents"));
+        this(leaseRequestRepository, documentRepository, reviewActionRepository, statusHistoryRepository, validationService, new FileStorageService("uploads/documents"), null);
+    }
+
+    public LeaseRequestService(
+            LeaseRequestRepository leaseRequestRepository,
+            DocumentRepository documentRepository,
+            ReviewActionRepository reviewActionRepository,
+            StatusHistoryRepository statusHistoryRepository,
+            ValidationService validationService,
+            FileStorageService fileStorageService) {
+        this(leaseRequestRepository, documentRepository, reviewActionRepository, statusHistoryRepository, validationService, fileStorageService, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -48,13 +59,25 @@ public class LeaseRequestService {
             ReviewActionRepository reviewActionRepository,
             StatusHistoryRepository statusHistoryRepository,
             ValidationService validationService,
-            FileStorageService fileStorageService) {
+            FileStorageService fileStorageService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) NotificationService notificationService) {
         this.leaseRequestRepository = leaseRequestRepository;
         this.documentRepository = documentRepository;
         this.reviewActionRepository = reviewActionRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.validationService = validationService;
         this.fileStorageService = fileStorageService;
+        this.notificationService = notificationService;
+    }
+
+    private void dispatchNotification(String targetRole, String title, String message, String linkUrl, String severity) {
+        if (notificationService != null) {
+            try {
+                notificationService.sendNotification(targetRole, title, message, linkUrl, severity);
+            } catch (Exception e) {
+                log.warn("Failed to dispatch notification: {}", e.getMessage());
+            }
+        }
     }
 
     @Transactional
@@ -140,6 +163,10 @@ public class LeaseRequestService {
             ));
         }
 
+        dispatchNotification("LEGAL", "New Lease Request #" + savedRequest.getId(),
+                "New lease submission from " + requesterId + " (" + leaseType + ").",
+                "/track-request/" + savedRequest.getId(), "INFO");
+
         return buildResponseDto(savedRequest, documentDtos);
     }
 
@@ -218,6 +245,8 @@ public class LeaseRequestService {
         // US9 Audit Trail: Record resubmission status transition
         statusHistoryRepository.save(new StatusHistory(id, oldStatus, LeaseRequest.STATUS_SUBMITTED, saved.getRequesterId()));
 
+        dispatchNotification("LEGAL", "Request #" + id + " Resubmitted", "Tenant resubmitted updated lease documents.", "/track-request/" + id, "INFO");
+
         return buildResponseDto(saved, documentDtos);
     }
 
@@ -248,6 +277,8 @@ public class LeaseRequestService {
         reviewActionRepository.save(new ReviewAction(requestId, reviewer, "APPROVE", commentText));
         statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_APPROVED, reviewer));
 
+        dispatchNotification("ALL", "Request #" + requestId + " Approved", "Lease request #" + requestId + " has been approved by " + reviewer + ".", "/track-request/" + requestId, "SUCCESS");
+
         return buildResponseDto(saved);
     }
 
@@ -267,6 +298,8 @@ public class LeaseRequestService {
 
         reviewActionRepository.save(new ReviewAction(requestId, reviewer, "LEGAL_APPROVE", commentText));
         statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_LEGAL_APPROVED, reviewer));
+
+        dispatchNotification("FINANCE", "Legal Cleared: Request #" + requestId, "Legal compliance approved by " + reviewer + ". Ready for Finance.", "/track-request/" + requestId, "INFO");
 
         return buildResponseDto(saved);
     }
@@ -288,6 +321,8 @@ public class LeaseRequestService {
         reviewActionRepository.save(new ReviewAction(requestId, reviewer, "FINANCE_APPROVE", commentText));
         statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_APPROVED, reviewer));
 
+        dispatchNotification("ALL", "Final Approval: Request #" + requestId, "Lease request #" + requestId + " received final underwriting approval.", "/track-request/" + requestId, "SUCCESS");
+
         return buildResponseDto(saved);
     }
 
@@ -307,6 +342,8 @@ public class LeaseRequestService {
         reviewActionRepository.save(new ReviewAction(requestId, reviewer, "REJECT", comment.trim()));
         statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_REJECTED, reviewer));
 
+        dispatchNotification("TENANT", "Request #" + requestId + " Rejected", "Reviewer " + reviewer + " rejected the request: " + comment.trim(), "/track-request/" + requestId, "DANGER");
+
         return buildResponseDto(saved);
     }
 
@@ -324,6 +361,8 @@ public class LeaseRequestService {
 
         reviewActionRepository.save(new ReviewAction(requestId, reviewer, "REQUEST_CHANGES", comment.trim()));
         statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_CHANGES_REQUESTED, reviewer));
+
+        dispatchNotification("TENANT", "Changes Requested: Request #" + requestId, "Reviewer " + reviewer + " requested changes: " + comment.trim(), "/track-request/" + requestId, "WARNING");
 
         return buildResponseDto(saved);
     }
