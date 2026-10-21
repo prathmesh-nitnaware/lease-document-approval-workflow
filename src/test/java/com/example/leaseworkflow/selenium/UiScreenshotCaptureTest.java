@@ -13,6 +13,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import org.junit.jupiter.api.Tag;
+import org.springframework.test.context.ActiveProfiles;
+
+@Tag("screenshot")
+@ActiveProfiles({"dev", "demo"})
 public class UiScreenshotCaptureTest extends BaseSeleniumTest {
 
     private static final Dimension DESKTOP_SIZE = new Dimension(1280, 800);
@@ -67,14 +72,14 @@ public class UiScreenshotCaptureTest extends BaseSeleniumTest {
         // Desktop screenshot
         driver.manage().window().setSize(DESKTOP_SIZE);
         driver.get(url);
-        Thread.sleep(800);
+        Thread.sleep(1500);
         File desktopSrc = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         File desktopDest = new File("docs/ui/" + name + "-desktop.png");
         Files.copy(desktopSrc.toPath(), desktopDest.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         // Mobile screenshot
         driver.manage().window().setSize(MOBILE_SIZE);
-        Thread.sleep(500);
+        Thread.sleep(1000);
         File mobileSrc = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         File mobileDest = new File("docs/ui/" + name + "-mobile.png");
         Files.copy(mobileSrc.toPath(), mobileDest.toPath(), StandardCopyOption.REPLACE_EXISTING);

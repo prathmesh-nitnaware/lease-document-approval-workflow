@@ -1,7 +1,10 @@
 package com.example.leaseworkflow.controller;
 
 import com.example.leaseworkflow.dto.LeaseRequestResponseDto;
+import com.example.leaseworkflow.model.UserPersona;
 import com.example.leaseworkflow.service.LeaseRequestService;
+import com.example.leaseworkflow.service.PersonaService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,14 +19,18 @@ import java.util.List;
 public class LeaseRequestWebController {
 
     private final LeaseRequestService leaseRequestService;
+    private final PersonaService personaService;
 
-    public LeaseRequestWebController(LeaseRequestService leaseRequestService) {
+    public LeaseRequestWebController(LeaseRequestService leaseRequestService, PersonaService personaService) {
         this.leaseRequestService = leaseRequestService;
+        this.personaService = personaService;
     }
 
     @GetMapping("/submit-request")
-    public String showSubmissionForm(Model model) {
-        model.addAttribute("requesterId", "");
+    public String showSubmissionForm(HttpSession session, Model model) {
+        UserPersona current = personaService.getCurrentPersona(session);
+        String defaultRequesterId = current != null && current.isTenant() ? current.getId() : "";
+        model.addAttribute("requesterId", defaultRequesterId);
         model.addAttribute("leaseType", "");
         return "submit-request";
     }
@@ -53,10 +60,13 @@ public class LeaseRequestWebController {
     @GetMapping({"/reviewer-queue", "/review-queue"})
     public String showReviewerQueue(
             @RequestParam(value = "status", required = false) String statusFilter,
+            HttpSession session,
             Model model) {
+        UserPersona current = personaService.getCurrentPersona(session);
         List<LeaseRequestResponseDto> queue = leaseRequestService.getReviewerQueue(statusFilter);
         model.addAttribute("requests", queue);
         model.addAttribute("currentFilter", statusFilter != null ? statusFilter : "ALL_PENDING");
+        model.addAttribute("isTenantRestricted", current != null && current.isTenant());
         return "reviewer-queue";
     }
 
@@ -64,14 +74,16 @@ public class LeaseRequestWebController {
     public String approveRequest(
             @RequestParam("requestId") Long requestId,
             @RequestParam(value = "reviewerId", defaultValue = "Reviewer-01") String reviewerId,
+            HttpSession session,
             Model model) {
         try {
-            leaseRequestService.approveRequest(requestId, reviewerId);
-            model.addAttribute("successMessage", "Request #" + requestId + " has been APPROVED.");
+            String resolvedReviewer = resolveReviewerId(reviewerId, session);
+            leaseRequestService.approveRequest(requestId, resolvedReviewer);
+            model.addAttribute("successMessage", "Request #" + requestId + " has been APPROVED by " + resolvedReviewer + ".");
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
         }
-        return showReviewerQueue(null, model);
+        return showReviewerQueue(null, session, model);
     }
 
     @PostMapping("/reviewer/reject")
@@ -79,14 +91,16 @@ public class LeaseRequestWebController {
             @RequestParam("requestId") Long requestId,
             @RequestParam(value = "reviewerId", defaultValue = "Reviewer-01") String reviewerId,
             @RequestParam("comment") String comment,
+            HttpSession session,
             Model model) {
         try {
-            leaseRequestService.rejectRequest(requestId, reviewerId, comment);
-            model.addAttribute("successMessage", "Request #" + requestId + " has been REJECTED.");
+            String resolvedReviewer = resolveReviewerId(reviewerId, session);
+            leaseRequestService.rejectRequest(requestId, resolvedReviewer, comment);
+            model.addAttribute("successMessage", "Request #" + requestId + " has been REJECTED by " + resolvedReviewer + ".");
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
         }
-        return showReviewerQueue(null, model);
+        return showReviewerQueue(null, session, model);
     }
 
     @PostMapping("/reviewer/request-changes")
@@ -94,14 +108,27 @@ public class LeaseRequestWebController {
             @RequestParam("requestId") Long requestId,
             @RequestParam(value = "reviewerId", defaultValue = "Reviewer-01") String reviewerId,
             @RequestParam("comment") String comment,
+            HttpSession session,
             Model model) {
         try {
-            leaseRequestService.requestChanges(requestId, reviewerId, comment);
-            model.addAttribute("successMessage", "Changes requested for Request #" + requestId + ".");
+            String resolvedReviewer = resolveReviewerId(reviewerId, session);
+            leaseRequestService.requestChanges(requestId, resolvedReviewer, comment);
+            model.addAttribute("successMessage", "Changes requested for Request #" + requestId + " by " + resolvedReviewer + ".");
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
         }
-        return showReviewerQueue(null, model);
+        return showReviewerQueue(null, session, model);
+    }
+
+    private String resolveReviewerId(String reviewerId, HttpSession session) {
+        if (reviewerId != null && !reviewerId.isBlank() && !reviewerId.equals("Reviewer-01")) {
+            return reviewerId;
+        }
+        UserPersona current = personaService.getCurrentPersona(session);
+        if (current != null && current.canReview()) {
+            return current.getDisplayName() + " (" + current.getRole().getDisplayName() + ")";
+        }
+        return "Reviewer-01";
     }
 
     @GetMapping("/track-request/{id}")

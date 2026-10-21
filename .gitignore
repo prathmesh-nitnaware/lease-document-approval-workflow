@@ -39,3 +39,6 @@ reports/
 id_ed25519*
 id_rsa*
 *.retry
+
+# Uploads & Document Storage
+uploads/

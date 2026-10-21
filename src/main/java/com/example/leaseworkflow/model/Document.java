@@ -25,6 +25,12 @@ public class Document {
     @Column(name = "validation_result")
     private String validationResult;
 
+    @Column(name = "storage_path")
+    private String storagePath;
+
+    @Column(name = "checksum_sha256")
+    private String checksumSha256;
+
     public Document() {
     }
 
@@ -34,6 +40,16 @@ public class Document {
         this.fileType = fileType;
         this.fileSize = fileSize;
         this.validationResult = validationResult;
+    }
+
+    public Document(Long requestId, String fileName, String fileType, Long fileSize, String validationResult, String storagePath, String checksumSha256) {
+        this.requestId = requestId;
+        this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileSize = fileSize;
+        this.validationResult = validationResult;
+        this.storagePath = storagePath;
+        this.checksumSha256 = checksumSha256;
     }
 
     public Long getId() {
@@ -82,5 +98,21 @@ public class Document {
 
     public void setValidationResult(String validationResult) {
         this.validationResult = validationResult;
+    }
+
+    public String getStoragePath() {
+        return storagePath;
+    }
+
+    public void setStoragePath(String storagePath) {
+        this.storagePath = storagePath;
+    }
+
+    public String getChecksumSha256() {
+        return checksumSha256;
+    }
+
+    public void setChecksumSha256(String checksumSha256) {
+        this.checksumSha256 = checksumSha256;
     }
 }

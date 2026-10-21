@@ -1,138 +1,265 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Track Request')}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Track My Request - Lease Approval</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            --success: #059669;
-            --danger: #dc2626;
-            --warning: #d97706;
+    <title>Track Request — Lease Approval</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="app-body">
+
+    <!-- Shared Navigation -->
+    <header th:replace="~{fragments/layout :: navbar('track')}"></header>
+
+    <!-- Shared Flash Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main id="main-content" class="container" style="max-width: 820px; padding-top: var(--space-8); padding-bottom: var(--space-12);">
+
+        <!-- Page Card -->
+        <div class="card" style="overflow: hidden; border: 1px solid var(--border-default);">
+            <!-- Card Header -->
+            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); padding: var(--space-6) var(--space-8); color: white;">
+                <div style="font-size: var(--font-xs); text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85;">Lifecycle Tracking &amp; Multi-Role Audit</div>
+                <h1 style="font-size: var(--font-2xl); font-weight: 800; margin-top: 2px;">Track Lease Request Details</h1>
+            </div>
+
+            <div class="card-body" style="padding: var(--space-8);">
+
+                <!-- Status Header Banner -->
+                <div style="background: var(--bg-surface-raised); padding: var(--space-5); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); margin-bottom: var(--space-6); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
+                    <div>
+                        <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Current Status</div>
+                        <div style="font-size: var(--font-xl); font-weight: 800; margin-top: 2px;">
+                            Request <span id="track-request-id" th:text="'#' + ${request.id}" style="color: var(--primary-300);">#1</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span th:if="${request.stage != null}" class="badge bg-dark border border-secondary text-secondary" style="font-size: 0.75rem;" th:text="${request.stage}">LEGAL_STAGE</span>
+                        <span id="status-badge" th:class="'badge badge-' + ${#strings.toLowerCase(request.status)}" th:text="${request.status}" style="font-size: var(--font-sm); padding: 6px 14px; border-radius: var(--radius-full); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">SUBMITTED</span>
+                    </div>
+                </div>
+
+                <!-- Multi-Role Stage Progress Stepper -->
+                <div style="background: var(--bg-surface); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-subtle); margin-bottom: var(--space-6);">
+                    <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 0.75rem;">
+                        Multi-Stage Approval Pipeline
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-center" style="font-size: 0.8rem;">
+                        <!-- Step 1: Submission -->
+                        <div class="flex-grow-1 p-2 rounded" style="background: #064e3b; border: 1px solid #047857;">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <div class="fw-bold text-white mt-1">1. Submission</div>
+                            <div class="text-success-emphasis" style="font-size: 0.7rem;">Tenant Ingestion</div>
+                        </div>
+                        <div class="text-muted">&rarr;</div>
+                        <!-- Step 2: Legal Compliance -->
+                        <div class="flex-grow-1 p-2 rounded"
+                             th:style="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'background: #064e3b; border: 1px solid #047857;' : (request.status == 'SUBMITTED' or request.status == 'UNDER_REVIEW' ? 'background: #1e3a8a; border: 1px solid #2563eb;' : 'background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);')}">
+                            <i th:class="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success' : 'bi bi-shield-check text-primary'}"></i>
+                            <div class="fw-bold text-white mt-1">2. Legal Review</div>
+                            <div class="text-muted" style="font-size: 0.7rem;" th:text="${request.legalReviewer != null ? request.legalReviewer : 'Sarah Jenkins'}">Sarah Jenkins</div>
+                        </div>
+                        <div class="text-muted">&rarr;</div>
+                        <!-- Step 3: Finance Underwriting -->
+                        <div class="flex-grow-1 p-2 rounded"
+                             th:style="${request.status == 'APPROVED' ? 'background: #064e3b; border: 1px solid #047857;' : (request.status == 'LEGAL_APPROVED' or request.status == 'FINANCE_REVIEW' ? 'background: #1e3a8a; border: 1px solid #2563eb;' : 'background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);')}">
+                            <i th:class="${request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success' : 'bi bi-cash-stack text-primary'}"></i>
+                            <div class="fw-bold text-white mt-1">3. Finance Audit</div>
+                            <div class="text-muted" style="font-size: 0.7rem;" th:text="${request.financeReviewer != null ? request.financeReviewer : 'Marcus Vance'}">Marcus Vance</div>
+                        </div>
+                        <div class="text-muted">&rarr;</div>
+                        <!-- Step 4: Final Sign-off -->
+                        <div class="flex-grow-1 p-2 rounded"
+                             th:style="${request.status == 'APPROVED' ? 'background: #064e3b; border: 1px solid #047857;' : (request.status == 'REJECTED' ? 'background: #451a1a; border: 1px solid #991b1b;' : 'background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);')}">
+                            <i th:class="${request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success' : (request.status == 'REJECTED' ? 'bi bi-x-circle-fill text-danger' : 'bi bi-award text-muted')}"></i>
+                            <div class="fw-bold text-white mt-1">4. Final Sign-off</div>
+                            <div class="text-muted" style="font-size: 0.7rem;" th:text="${request.status}">Status</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                <div th:if="${successMessage}" class="alert alert-success" id="success-alert" style="background: #064e3b; color: #6ee7b7; border: 1px solid #047857; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert" style="background: #451a1a; color: #fca5a5; border: 1px solid #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <span>&#9888; </span><span id="error-message" th:text="${errorMessage}">Validation Error</span>
+                </div>
+
+                <!-- Request Summary -->
+                <div style="font-size: var(--font-base); font-weight: 700; margin-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); color: var(--text-primary);">
+                    Request Summary
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6); font-size: var(--font-sm);">
+                    <div style="background: var(--bg-surface-raised); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                        <span style="display: block; color: var(--text-muted); font-size: var(--font-xs);">Requester Name / ID</span>
+                        <strong id="track-requester-id" th:text="${request.requesterId}" style="color: var(--text-primary);">Jane Doe</strong>
+                    </div>
+                    <div style="background: var(--bg-surface-raised); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                        <span style="display: block; color: var(--text-muted); font-size: var(--font-xs);">Lease Type</span>
+                        <strong id="track-lease-type" th:text="${request.leaseType}" style="color: var(--text-primary);">Commercial</strong>
+                    </div>
+                    <div style="background: var(--bg-surface-raised); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                        <span style="display: block; color: var(--text-muted); font-size: var(--font-xs);">Submitted Date</span>
+                        <strong id="track-submitted-date" th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm:ss')}" style="color: var(--text-primary);">2026-09-07 10:00:00</strong>
+                    </div>
+                </div>
+
+                <!-- Vertical Status Timeline Section (Built from StatusHistory) -->
+                <div style="margin-bottom: var(--space-6);">
+                    <div style="font-size: var(--font-base); font-weight: 700; margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); color: var(--text-primary);">
+                        Lifecycle Status Timeline
+                    </div>
+
+                    <div th:if="${statusHistory == null or #lists.isEmpty(statusHistory)}" style="color: var(--text-muted); font-size: var(--font-sm); padding: var(--space-4); background: var(--bg-surface-raised); border-radius: var(--radius-md);">
+                        No history events recorded yet.
+                    </div>
+
+                    <div th:unless="${statusHistory == null or #lists.isEmpty(statusHistory)}" class="vertical-timeline" id="status-timeline" style="position: relative; padding-left: 2.2rem; border-left: 2px solid var(--border-default); margin-left: 1rem; display: flex; flex-direction: column; gap: var(--space-5);">
+                        <div th:each="history : ${statusHistory}" class="timeline-item" style="position: relative;">
+                            <!-- Node Dot -->
+                            <div style="position: absolute; left: -2.85rem; top: 0.2rem; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--bg-surface-raised); border: 2px solid #3b82f6; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 6px; height: 6px; border-radius: 50%; background: #3b82f6;"></div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--space-2);">
+                                <div>
+                                    <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(history.newStatus)}" th:text="${history.newStatus}" style="font-weight: 700; font-size: var(--font-xs); padding: 3px 8px; border-radius: 4px;">SUBMITTED</span>
+                                    <span style="font-size: var(--font-xs); color: var(--text-muted); margin-left: 0.5rem;" th:text="${history.oldStatus != null ? 'Changed from ' + history.oldStatus : 'Initial Request Submission'}">Initial Request Submission</span>
+                                </div>
+                                <span style="font-size: var(--font-xs); color: var(--text-muted); font-family: var(--font-family-mono);" th:text="${#temporals.format(history.changedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-09-07 10:00:00</span>
+                            </div>
+
+                            <div style="font-size: var(--font-xs); color: var(--text-secondary); margin-top: 4px;">
+                                Recorded By: <strong style="color: var(--text-primary);" th:text="${history.changedBy}">Requester Portal</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uploaded Documents -->
+                <div style="font-size: var(--font-base); font-weight: 700; margin-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); color: var(--text-primary);">
+                    Uploaded Supporting Documents
+                </div>
+                <div style="overflow-x: auto; margin-bottom: var(--space-6);">
+                    <table class="doc-table" id="track-doc-table" style="width: 100%; border-collapse: collapse; font-size: var(--font-sm);">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-default); text-align: left; background: var(--bg-surface-raised);">
+                                <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">File Name</th>
+                                <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Type</th>
+                                <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Size</th>
+                                <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Validation Result</th>
+                                <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="doc : ${request.documents}" style="border-bottom: 1px solid var(--border-subtle);">
+                                <td style="padding: 0.6rem 0.8rem;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-check text-primary"></i>
+                                        <span th:text="${doc.fileName}">document.pdf</span>
+                                    </div>
+                                    <span th:if="${doc.checksumSha256 != null}" class="d-block text-muted font-monospace" style="font-size: 0.68rem;" th:text="'SHA: ' + ${#strings.substring(doc.checksumSha256, 0, 16)} + '...'">SHA: 123...</span>
+                                </td>
+                                <td th:text="${doc.fileType}" style="padding: 0.6rem 0.8rem;">PDF</td>
+                                <td th:text="${doc.fileSize >= 1048576 ? #numbers.formatDecimal(doc.fileSize / 1048576.0, 1, 2) + ' MB' : #numbers.formatDecimal(doc.fileSize / 1024.0, 1, 2) + ' KB'}" style="padding: 0.6rem 0.8rem;">1.2 MB</td>
+                                <td th:text="${doc.validationResult}" th:style="${#strings.startsWith(doc.validationResult, 'VALID') ? 'color: #34d399; font-weight: 600;' : 'color: #fca5a5; font-weight: 600;'}" style="padding: 0.6rem 0.8rem;">VALID</td>
+                                <td style="padding: 0.6rem 0.8rem;">
+                                    <div class="d-flex gap-1">
+                                        <a th:if="${doc.viewUrl != null}" href="javascript:void(0)"
+                                           th:attr="data-view-url=${doc.viewUrl}, data-file-name=${doc.fileName}, data-file-type=${doc.fileType}, data-checksum=${doc.checksumSha256}"
+                                           onclick="openPreviewModal(this)"
+                                           class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.75rem;">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a th:if="${doc.downloadUrl != null}" th:href="${doc.downloadUrl}"
+                                           class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" download>
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Reviewer Notes / Comments Section -->
+                <div th:if="${reviewActions != null and !#lists.isEmpty(reviewActions)}" id="review-actions-section" style="margin-bottom: var(--space-6);">
+                    <div style="font-size: var(--font-base); font-weight: 700; margin-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); color: var(--text-primary);">
+                        Reviewer Feedback &amp; Decision History
+                    </div>
+                    <div th:each="action : ${reviewActions}" class="info-item" style="background: var(--bg-surface-raised); padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid var(--border-subtle);" th:id="'review-action-' + ${action.id}">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <strong style="color: var(--text-primary);" th:text="${action.reviewerId} + ' (' + ${action.action} + ')'">Reviewer-01 (REJECT)</strong>
+                            <span style="color: var(--text-muted); font-size: 0.8rem;" th:text="${#temporals.format(action.actionAt, 'yyyy-MM-dd HH:mm')}">2026-09-07</span>
+                        </div>
+                        <p id="review-comment-text" style="color: #fca5a5; font-size: 0.9rem;" th:text="${action.comment}">Comment text here</p>
+                    </div>
+                </div>
+
+                <!-- Resubmit Card for CHANGES_REQUESTED -->
+                <div th:if="${request.status == 'CHANGES_REQUESTED'}" class="resubmit-card" id="resubmit-section" style="background: var(--bg-surface-raised); border: 1px dashed #f59e0b; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem;">
+                    <h3 style="color: #fbbf24; margin-bottom: 0.5rem; font-size: var(--font-lg);">Action Required: Resubmit Request</h3>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        The reviewer has requested changes or updated paperwork. Please attach the revised files below to return your request to the reviewer queue.
+                    </p>
+                    <form th:action="'/track-request/' + ${request.id} + '/resubmit'" method="post" enctype="multipart/form-data" id="resubmit-form">
+                        <input type="file" id="resubmitFileInput" name="files" accept=".pdf,.jpg,.jpeg,.png" multiple required style="margin-bottom: 1rem; display: block; color: white;">
+                        <button type="submit" id="resubmit-btn" class="btn btn-primary">Resubmit Request &amp; Files</button>
+                    </form>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <a href="/submit-request" id="return-submit-link" style="color: var(--primary-400); text-decoration: none; font-weight: 500;">&larr; Return to Submission Form</a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Document Live Preview Modal -->
+    <div id="documentPreviewModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.82); justify-content: center; align-items: center; z-index: 1060;">
+        <div class="modal-content" style="background: var(--bg-surface-raised); padding: 1.5rem; border-radius: 10px; width: 850px; max-width: 95%; height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border-default);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+                <div>
+                    <h4 id="previewDocTitle" style="color: white; margin: 0; font-size: 1.1rem;">Document Preview</h4>
+                    <span id="previewChecksumBadge" class="badge bg-secondary font-monospace mt-1" style="font-size: 0.65rem;">SHA-256: Verified</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a id="previewDownloadLink" href="#" class="btn btn-sm btn-outline-info" download>Download</a>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="closePreviewModal()">&times; Close</button>
+                </div>
+            </div>
+            <div style="flex-grow: 1; background: #0b0f19; border-radius: 6px; overflow: hidden; position: relative;">
+                <iframe id="previewIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shared Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- Bundled Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        function openPreviewModal(btn) {
+            var viewUrl = btn.getAttribute('data-view-url');
+            var fileName = btn.getAttribute('data-file-name');
+            var checksum = btn.getAttribute('data-checksum');
+
+            document.getElementById('previewDocTitle').textContent = fileName || 'Document Preview';
+            document.getElementById('previewChecksumBadge').textContent = checksum ? 'SHA-256: ' + checksum.substring(0, 16) + '...' : 'Integrity Verified';
+            document.getElementById('previewIframe').src = viewUrl;
+            document.getElementById('previewDownloadLink').href = viewUrl.replace('/view', '/download');
+            document.getElementById('documentPreviewModal').style.display = 'flex';
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-main); padding: 2rem 1rem; }
-        .container { max-width: 750px; margin: 0 auto; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); padding: 1.5rem 2rem; }
-        .header h1 { font-size: 1.5rem; color: white; }
-        .content { padding: 2rem; }
-
-        .status-box { background: #0f172a; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        .badge { padding: 0.3rem 0.6rem; border-radius: 4px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; }
-        .badge-SUBMITTED { background: #1e40af; color: #dbeafe; }
-        .badge-APPROVED { background: #065f46; color: #d1fae5; }
-        .badge-REJECTED { background: #991b1b; color: #fee2e2; }
-        .badge-CHANGES_REQUESTED { background: #7c2d12; color: #ffedd5; }
-
-        .section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; color: var(--text-main); }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; }
-        .info-item span { display: block; color: var(--text-muted); font-size: 0.8rem; }
-
-        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
-        .doc-table th, .doc-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border-color); text-align: left; }
-        .doc-table th { background: #0f172a; color: var(--text-muted); }
-
-        .resubmit-card { background: #0f172a; border: 1px dashed var(--warning); padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem; }
-        .btn-submit { background: var(--primary); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="header">
-        <h1>Track Lease Request Details</h1>
-    </div>
-
-    <div class="content">
-
-        <div class="status-box">
-            <div>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">Current Request Status</div>
-                <div style="font-size: 1.2rem; font-weight: 700; margin-top: 0.25rem;">
-                    Request <span id="track-request-id" th:text="'#' + ${request.id}">#1</span>
-                </div>
-            </div>
-            <span id="status-badge" th:class="'badge badge-' + ${request.status}" th:text="${request.status}">SUBMITTED</span>
-        </div>
-
-        <div th:if="${successMessage}" class="alert alert-success" id="success-alert" style="background: #064e3b; color: #6ee7b7; border: 1px solid #047857; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert" style="background: #451a1a; color: #fca5a5; border: 1px solid #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-            <span>&#9888; </span><span id="error-message" th:text="${errorMessage}">Validation Error</span>
-        </div>
-
-        <div class="section-title">Request Summary</div>
-        <div class="info-grid">
-            <div class="info-item">
-                <span>Requester Name / ID</span>
-                <strong id="track-requester-id" th:text="${request.requesterId}">Jane Doe</strong>
-            </div>
-            <div class="info-item">
-                <span>Lease Type</span>
-                <strong id="track-lease-type" th:text="${request.leaseType}">Commercial</strong>
-            </div>
-            <div class="info-item">
-                <span>Submitted Date</span>
-                <strong id="track-submitted-date" th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-09-07</strong>
-            </div>
-        </div>
-
-        <div class="section-title">Uploaded Supporting Documents</div>
-        <table class="doc-table" id="track-doc-table">
-            <thead>
-                <tr>
-                    <th>File Name</th>
-                    <th>Type</th>
-                    <th>Size</th>
-                    <th>Validation Result</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="doc : ${request.documents}">
-                    <td th:text="${doc.fileName}">document.pdf</td>
-                    <td th:text="${doc.fileType}">PDF</td>
-                    <td th:text="${doc.fileSize >= 1048576 ? #numbers.formatDecimal(doc.fileSize / 1048576.0, 1, 2) + ' MB' : #numbers.formatDecimal(doc.fileSize / 1024.0, 1, 2) + ' KB'}">1.2 MB</td>
-                    <td th:text="${doc.validationResult}" th:style="${#strings.startsWith(doc.validationResult, 'VALID') ? 'color: #34d399;' : 'color: #fca5a5;'}">VALID</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Reviewer Notes / Comments Section -->
-        <div th:if="${reviewActions != null and !#lists.isEmpty(reviewActions)}" id="review-actions-section" style="margin-bottom: 1.5rem;">
-            <div class="section-title">Reviewer Feedback &amp; Decision History</div>
-            <div th:each="action : ${reviewActions}" class="info-item" style="background: #0f172a; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; border: 1px solid var(--border-color);" th:id="'review-action-' + ${action.id}">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                    <strong style="color: var(--text-main);" th:text="${action.reviewerId} + ' (' + ${action.action} + ')'">Reviewer-01 (REJECT)</strong>
-                    <span style="color: var(--text-muted); font-size: 0.8rem;" th:text="${#temporals.format(action.actionAt, 'yyyy-MM-dd HH:mm')}">2026-09-07</span>
-                </div>
-                <p id="review-comment-text" style="color: #fca5a5; font-size: 0.9rem;" th:text="${action.comment}">Comment text here</p>
-            </div>
-        </div>
-
-        <!-- Resubmit Card for CHANGES_REQUESTED -->
-        <div th:if="${request.status == 'CHANGES_REQUESTED'}" class="resubmit-card" id="resubmit-section">
-            <h3 style="color: var(--warning); margin-bottom: 0.5rem;">Action Required: Resubmit Request</h3>
-            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
-                The reviewer has requested changes or updated paperwork. Please attach the revised files below to return your request to the reviewer queue.
-            </p>
-            <form th:action="'/track-request/' + ${request.id} + '/resubmit'" method="post" enctype="multipart/form-data" id="resubmit-form">
-                <input type="file" id="resubmitFileInput" name="files" accept=".pdf,.jpg,.jpeg,.png" multiple required style="margin-bottom: 1rem; display: block; color: white;">
-                <button type="submit" id="resubmit-btn" class="btn-submit">Resubmit Request &amp; Files</button>
-            </form>
-        </div>
-
-        <div style="margin-top: 2rem;">
-            <a href="/submit-request" id="return-submit-link" style="color: var(--primary); text-decoration: none;">&larr; Return to Submission Form</a>
-        </div>
-
-    </div>
-</div>
-
+        function closePreviewModal() {
+            document.getElementById('previewIframe').src = '';
+            document.getElementById('documentPreviewModal').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

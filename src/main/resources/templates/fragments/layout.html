@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
 <!-- ========================================================================
@@ -11,7 +11,9 @@
     <title th:text="${title != null ? title + ' — Lease Approval Workflow' : 'Lease Approval Workflow'}">Lease Approval
         Workflow</title>
 
-    <!-- Design System CSS (Self-contained, zero external CDN dependencies) -->
+    <!-- Local Bundled CSS (Zero external CDN/font dependencies) -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 
@@ -43,36 +45,74 @@
                 <nav aria-label="Main Navigation">
                     <ul class="navbar-nav">
                         <li>
-                            <a th:href="@{/}" class="nav-link" th:classappend="${activeTab == 'home' ? 'active' : ''}">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                                </svg>
+                            <a th:href="@{/}" class="nav-link" id="nav-link-home" th:classappend="${activeTab == 'home' ? 'active' : ''}">
                                 <span>Home</span>
                             </a>
                         </li>
                         <li>
-                            <a th:href="@{/submit-request}" class="nav-link"
+                            <a th:href="@{/dashboard}" class="nav-link" id="nav-link-dashboard" th:classappend="${activeTab == 'dashboard' ? 'active' : ''}">
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/submit-request}" class="nav-link" id="nav-link-submit"
                                 th:classappend="${activeTab == 'submit' ? 'active' : ''}">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 5v14M5 12h14"></path>
-                                </svg>
                                 <span>Submit Request</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/reviewer-queue}" class="nav-link" id="nav-link-reviewer"
+                                th:classappend="${activeTab == 'reviewer' ? 'active' : ''}">
+                                <span>Reviewer Queue</span>
+                                <span th:if="${isTenant}" class="badge bg-secondary ms-1" style="font-size: 0.65rem;">Tenant View</span>
                             </a>
                         </li>
                     </ul>
                 </nav>
 
-                <!-- Quick Action / CTA -->
-                <div class="navbar-actions">
-                    <a th:href="@{/submit-request}" class="btn btn-primary btn-sm">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
+                <!-- Quick Action / CTA & Persona Switcher -->
+                <div class="navbar-actions d-flex align-items-center gap-2">
+                    <!-- Demo Persona Switcher Dropdown -->
+                    <div class="dropdown persona-dropdown" th:if="${currentPersona != null}">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2 persona-toggle-btn"
+                                type="button" id="personaDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                title="Switch Demo Role Persona">
+                            <span class="persona-avatar-badge"
+                                  th:style="'background-color:' + ${currentPersona.role.themeColor}"
+                                  th:text="${currentPersona.avatarInitials}">SJ</span>
+                            <span class="d-none d-lg-inline text-start">
+                                <span class="d-block fw-semibold text-white" style="font-size: 0.8rem; line-height: 1.1;"
+                                      th:text="${currentPersona.displayName}">Sarah Jenkins</span>
+                                <span class="d-block text-muted" style="font-size: 0.68rem;"
+                                      th:text="${currentPersona.role.displayName}">Legal Officer</span>
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg persona-menu p-2" aria-labelledby="personaDropdown" style="min-width: 290px; background-color: var(--bg-surface-elevated, #1e293b); border: 1px solid var(--border-default, #334155);">
+                            <li class="dropdown-header px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.05em;">
+                                <i class="bi bi-people-fill me-1"></i> Switch Active Role (Demo Mode)
+                            </li>
+                            <li><hr class="dropdown-divider my-1" style="border-color: var(--border-subtle, #334155);"></li>
+                            <li th:each="p : ${availablePersonas}">
+                                <a class="dropdown-item rounded-2 py-2 px-2 d-flex align-items-center gap-2"
+                                   th:classappend="${p.id == currentPersona.id ? 'active-persona-item' : ''}"
+                                   th:href="@{/switch-persona(personaId=${p.id})}">
+                                    <span class="persona-avatar-badge flex-shrink-0"
+                                          th:style="'background-color:' + ${p.role.themeColor}"
+                                          th:text="${p.avatarInitials}">JD</span>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span class="fw-semibold text-white text-truncate" style="font-size: 0.84rem;" th:text="${p.displayName}">John Doe</span>
+                                            <span th:if="${p.id == currentPersona.id}" class="badge bg-primary" style="font-size: 0.62rem;">ACTIVE</span>
+                                        </div>
+                                        <div class="text-secondary text-truncate" style="font-size: 0.72rem;" th:text="${p.role.displayName}">Tenant</div>
+                                        <div class="text-muted text-truncate" style="font-size: 0.66rem;" th:text="${p.department}">Commercial Tenant</div>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a th:href="@{/submit-request}" class="btn btn-primary btn-sm" id="nav-cta-new-request">
                         <span>New Request</span>
                     </a>
                 </div>
@@ -135,6 +175,14 @@
             </div>
         </div>
     </footer>
+
+    <!-- ========================================================================
+     5. Reusable Bundled Vendor Scripts Fragment (Local only, zero CDN)
+     ======================================================================== -->
+    <div th:fragment="scripts">
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+        <script th:src="@{/js/chart.umd.min.js}"></script>
+    </div>
 
 </body>
 
