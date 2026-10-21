@@ -22,7 +22,7 @@
         <div class="card" style="overflow: hidden; border: 1px solid var(--border-default);">
             <!-- Card Header -->
             <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); padding: var(--space-6) var(--space-8); color: white;">
-                <div style="font-size: var(--font-xs); text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85;">Lifecycle Tracking</div>
+                <div style="font-size: var(--font-xs); text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85;">Lifecycle Tracking &amp; Multi-Role Audit</div>
                 <h1 style="font-size: var(--font-2xl); font-weight: 800; margin-top: 2px;">Track Lease Request Details</h1>
             </div>
 
@@ -36,7 +36,49 @@
                             Request <span id="track-request-id" th:text="'#' + ${request.id}" style="color: var(--primary-300);">#1</span>
                         </div>
                     </div>
-                    <span id="status-badge" th:class="'badge badge-' + ${request.status}" th:text="${request.status}" style="font-size: var(--font-sm); padding: 6px 14px; border-radius: var(--radius-full); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">SUBMITTED</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span th:if="${request.stage != null}" class="badge bg-dark border border-secondary text-secondary" style="font-size: 0.75rem;" th:text="${request.stage}">LEGAL_STAGE</span>
+                        <span id="status-badge" th:class="'badge badge-' + ${#strings.toLowerCase(request.status)}" th:text="${request.status}" style="font-size: var(--font-sm); padding: 6px 14px; border-radius: var(--radius-full); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">SUBMITTED</span>
+                    </div>
+                </div>
+
+                <!-- Multi-Role Stage Progress Stepper -->
+                <div style="background: var(--bg-surface); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-subtle); margin-bottom: var(--space-6);">
+                    <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 0.75rem;">
+                        Multi-Stage Approval Pipeline
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-center" style="font-size: 0.8rem;">
+                        <!-- Step 1: Submission -->
+                        <div class="flex-grow-1 p-2 rounded" style="background: #064e3b; border: 1px solid #047857;">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <div class="fw-bold text-white mt-1">1. Submission</div>
+                            <div class="text-success-emphasis" style="font-size: 0.7rem;">Tenant Ingestion</div>
+                        </div>
+                        <div class="text-muted">&rarr;</div>
+                        <!-- Step 2: Legal Compliance -->
+                        <div class="flex-grow-1 p-2 rounded"
+                             th:style="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'background: #064e3b; border: 1px solid #047857;' : (request.status == 'SUBMITTED' or request.status == 'UNDER_REVIEW' ? 'background: #1e3a8a; border: 1px solid #2563eb;' : 'background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);')}">
+                            <i th:class="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success' : 'bi bi-shield-check text-primary'}"></i>
+                            <div class="fw-bold text-white mt-1">2. Legal Review</div>
+                            <div class="text-muted" style="font-size: 0.7rem;" th:text="${request.legalReviewer != null ? request.legalReviewer : 'Sarah Jenkins'}">Sarah Jenkins</div>
+                        </div>
+                        <div class="text-muted">&rarr;</div>
+                        <!-- Step 3: Finance Underwriting -->
+                        <div class="flex-grow-1 p-2 rounded"
+                             th:style="${request.status == 'APPROVED' ? 'background: #064e3b; border: 1px solid #047857;' : (request.status == 'LEGAL_APPROVED' or request.status == 'FINANCE_REVIEW' ? 'background: #1e3a8a; border: 1px solid #2563eb;' : 'background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);')}">
+                            <i th:class="${request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success' : 'bi bi-cash-stack text-primary'}"></i>
+                            <div class="fw-bold text-white mt-1">3. Finance Audit</div>
+                            <div class="text-muted" style="font-size: 0.7rem;" th:text="${request.financeReviewer != null ? request.financeReviewer : 'Marcus Vance'}">Marcus Vance</div>
+                        </div>
+                        <div class="text-muted">&rarr;</div>
+                        <!-- Step 4: Final Sign-off -->
+                        <div class="flex-grow-1 p-2 rounded"
+                             th:style="${request.status == 'APPROVED' ? 'background: #064e3b; border: 1px solid #047857;' : (request.status == 'REJECTED' ? 'background: #451a1a; border: 1px solid #991b1b;' : 'background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);')}">
+                            <i th:class="${request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success' : (request.status == 'REJECTED' ? 'bi bi-x-circle-fill text-danger' : 'bi bi-award text-muted')}"></i>
+                            <div class="fw-bold text-white mt-1">4. Final Sign-off</div>
+                            <div class="text-muted" style="font-size: 0.7rem;" th:text="${request.status}">Status</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Alerts -->
@@ -83,7 +125,7 @@
 
                             <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--space-2);">
                                 <div>
-                                    <span class="badge" th:classappend="'badge-' + ${history.newStatus}" th:text="${history.newStatus}" style="font-weight: 700; font-size: var(--font-xs); padding: 3px 8px; border-radius: 4px;">SUBMITTED</span>
+                                    <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(history.newStatus)}" th:text="${history.newStatus}" style="font-weight: 700; font-size: var(--font-xs); padding: 3px 8px; border-radius: 4px;">SUBMITTED</span>
                                     <span style="font-size: var(--font-xs); color: var(--text-muted); margin-left: 0.5rem;" th:text="${history.oldStatus != null ? 'Changed from ' + history.oldStatus : 'Initial Request Submission'}">Initial Request Submission</span>
                                 </div>
                                 <span style="font-size: var(--font-xs); color: var(--text-muted); font-family: var(--font-family-mono);" th:text="${#temporals.format(history.changedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-09-07 10:00:00</span>
@@ -108,14 +150,35 @@
                                 <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Type</th>
                                 <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Size</th>
                                 <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Validation Result</th>
+                                <th style="padding: 0.6rem 0.8rem; color: var(--text-muted);">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="doc : ${request.documents}" style="border-bottom: 1px solid var(--border-subtle);">
-                                <td th:text="${doc.fileName}" style="padding: 0.6rem 0.8rem;">document.pdf</td>
+                                <td style="padding: 0.6rem 0.8rem;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-check text-primary"></i>
+                                        <span th:text="${doc.fileName}">document.pdf</span>
+                                    </div>
+                                    <span th:if="${doc.checksumSha256 != null}" class="d-block text-muted font-monospace" style="font-size: 0.68rem;" th:text="'SHA: ' + ${#strings.substring(doc.checksumSha256, 0, 16)} + '...'">SHA: 123...</span>
+                                </td>
                                 <td th:text="${doc.fileType}" style="padding: 0.6rem 0.8rem;">PDF</td>
                                 <td th:text="${doc.fileSize >= 1048576 ? #numbers.formatDecimal(doc.fileSize / 1048576.0, 1, 2) + ' MB' : #numbers.formatDecimal(doc.fileSize / 1024.0, 1, 2) + ' KB'}" style="padding: 0.6rem 0.8rem;">1.2 MB</td>
                                 <td th:text="${doc.validationResult}" th:style="${#strings.startsWith(doc.validationResult, 'VALID') ? 'color: #34d399; font-weight: 600;' : 'color: #fca5a5; font-weight: 600;'}" style="padding: 0.6rem 0.8rem;">VALID</td>
+                                <td style="padding: 0.6rem 0.8rem;">
+                                    <div class="d-flex gap-1">
+                                        <a th:if="${doc.viewUrl != null}" href="javascript:void(0)"
+                                           th:attr="data-view-url=${doc.viewUrl}, data-file-name=${doc.fileName}, data-file-type=${doc.fileType}, data-checksum=${doc.checksumSha256}"
+                                           onclick="openPreviewModal(this)"
+                                           class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.75rem;">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a th:if="${doc.downloadUrl != null}" th:href="${doc.downloadUrl}"
+                                           class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" download>
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -155,11 +218,48 @@
         </div>
     </main>
 
+    <!-- Document Live Preview Modal -->
+    <div id="documentPreviewModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.82); justify-content: center; align-items: center; z-index: 1060;">
+        <div class="modal-content" style="background: var(--bg-surface-raised); padding: 1.5rem; border-radius: 10px; width: 850px; max-width: 95%; height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border-default);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+                <div>
+                    <h4 id="previewDocTitle" style="color: white; margin: 0; font-size: 1.1rem;">Document Preview</h4>
+                    <span id="previewChecksumBadge" class="badge bg-secondary font-monospace mt-1" style="font-size: 0.65rem;">SHA-256: Verified</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a id="previewDownloadLink" href="#" class="btn btn-sm btn-outline-info" download>Download</a>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="closePreviewModal()">&times; Close</button>
+                </div>
+            </div>
+            <div style="flex-grow: 1; background: #0b0f19; border-radius: 6px; overflow: hidden; position: relative;">
+                <iframe id="previewIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
     <!-- Shared Footer -->
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 
     <!-- Bundled Scripts -->
     <div th:replace="~{fragments/layout :: scripts}"></div>
 
+    <script>
+        function openPreviewModal(btn) {
+            var viewUrl = btn.getAttribute('data-view-url');
+            var fileName = btn.getAttribute('data-file-name');
+            var checksum = btn.getAttribute('data-checksum');
+
+            document.getElementById('previewDocTitle').textContent = fileName || 'Document Preview';
+            document.getElementById('previewChecksumBadge').textContent = checksum ? 'SHA-256: ' + checksum.substring(0, 16) + '...' : 'Integrity Verified';
+            document.getElementById('previewIframe').src = viewUrl;
+            document.getElementById('previewDownloadLink').href = viewUrl.replace('/view', '/download');
+            document.getElementById('documentPreviewModal').style.display = 'flex';
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewIframe').src = '';
+            document.getElementById('documentPreviewModal').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

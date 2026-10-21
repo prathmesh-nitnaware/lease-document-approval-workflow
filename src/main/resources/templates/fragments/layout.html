@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
 <!-- ========================================================================
@@ -64,13 +64,54 @@
                             <a th:href="@{/reviewer-queue}" class="nav-link" id="nav-link-reviewer"
                                 th:classappend="${activeTab == 'reviewer' ? 'active' : ''}">
                                 <span>Reviewer Queue</span>
+                                <span th:if="${isTenant}" class="badge bg-secondary ms-1" style="font-size: 0.65rem;">Tenant View</span>
                             </a>
                         </li>
                     </ul>
                 </nav>
 
-                <!-- Quick Action / CTA -->
-                <div class="navbar-actions">
+                <!-- Quick Action / CTA & Persona Switcher -->
+                <div class="navbar-actions d-flex align-items-center gap-2">
+                    <!-- Demo Persona Switcher Dropdown -->
+                    <div class="dropdown persona-dropdown" th:if="${currentPersona != null}">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2 persona-toggle-btn"
+                                type="button" id="personaDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                title="Switch Demo Role Persona">
+                            <span class="persona-avatar-badge"
+                                  th:style="'background-color:' + ${currentPersona.role.themeColor}"
+                                  th:text="${currentPersona.avatarInitials}">SJ</span>
+                            <span class="d-none d-lg-inline text-start">
+                                <span class="d-block fw-semibold text-white" style="font-size: 0.8rem; line-height: 1.1;"
+                                      th:text="${currentPersona.displayName}">Sarah Jenkins</span>
+                                <span class="d-block text-muted" style="font-size: 0.68rem;"
+                                      th:text="${currentPersona.role.displayName}">Legal Officer</span>
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg persona-menu p-2" aria-labelledby="personaDropdown" style="min-width: 290px; background-color: var(--bg-surface-elevated, #1e293b); border: 1px solid var(--border-default, #334155);">
+                            <li class="dropdown-header px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.05em;">
+                                <i class="bi bi-people-fill me-1"></i> Switch Active Role (Demo Mode)
+                            </li>
+                            <li><hr class="dropdown-divider my-1" style="border-color: var(--border-subtle, #334155);"></li>
+                            <li th:each="p : ${availablePersonas}">
+                                <a class="dropdown-item rounded-2 py-2 px-2 d-flex align-items-center gap-2"
+                                   th:classappend="${p.id == currentPersona.id ? 'active-persona-item' : ''}"
+                                   th:href="@{/switch-persona(personaId=${p.id})}">
+                                    <span class="persona-avatar-badge flex-shrink-0"
+                                          th:style="'background-color:' + ${p.role.themeColor}"
+                                          th:text="${p.avatarInitials}">JD</span>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span class="fw-semibold text-white text-truncate" style="font-size: 0.84rem;" th:text="${p.displayName}">John Doe</span>
+                                            <span th:if="${p.id == currentPersona.id}" class="badge bg-primary" style="font-size: 0.62rem;">ACTIVE</span>
+                                        </div>
+                                        <div class="text-secondary text-truncate" style="font-size: 0.72rem;" th:text="${p.role.displayName}">Tenant</div>
+                                        <div class="text-muted text-truncate" style="font-size: 0.66rem;" th:text="${p.department}">Commercial Tenant</div>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
                     <a th:href="@{/submit-request}" class="btn btn-primary btn-sm" id="nav-cta-new-request">
                         <span>New Request</span>
                     </a>

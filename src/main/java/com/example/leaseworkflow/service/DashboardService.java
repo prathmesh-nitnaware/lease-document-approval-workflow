@@ -34,7 +34,9 @@ public class DashboardService {
         long total = leaseRequestRepository.count();
         long submitted = leaseRequestRepository.countByStatus(LeaseRequest.STATUS_SUBMITTED);
         long underReview = leaseRequestRepository.countByStatus(LeaseRequest.STATUS_UNDER_REVIEW);
-        long pending = submitted + underReview;
+        long legalApproved = leaseRequestRepository.countByStatus(LeaseRequest.STATUS_LEGAL_APPROVED);
+        long financeReview = leaseRequestRepository.countByStatus(LeaseRequest.STATUS_FINANCE_REVIEW);
+        long pending = submitted + underReview + legalApproved + financeReview;
         long approved = leaseRequestRepository.countByStatus(LeaseRequest.STATUS_APPROVED);
         long rejected = leaseRequestRepository.countByStatus(LeaseRequest.STATUS_REJECTED);
         long changes = leaseRequestRepository.countByStatus(LeaseRequest.STATUS_CHANGES_REQUESTED);
@@ -45,6 +47,7 @@ public class DashboardService {
         Map<String, Long> statusCounts = new LinkedHashMap<>();
         statusCounts.put(LeaseRequest.STATUS_SUBMITTED, submitted);
         statusCounts.put(LeaseRequest.STATUS_UNDER_REVIEW, underReview);
+        statusCounts.put(LeaseRequest.STATUS_LEGAL_APPROVED, legalApproved);
         statusCounts.put(LeaseRequest.STATUS_APPROVED, approved);
         statusCounts.put(LeaseRequest.STATUS_REJECTED, rejected);
         statusCounts.put(LeaseRequest.STATUS_CHANGES_REQUESTED, changes);

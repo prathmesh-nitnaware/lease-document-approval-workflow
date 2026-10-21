@@ -10,6 +10,8 @@ import com.example.leaseworkflow.repository.DocumentRepository;
 import com.example.leaseworkflow.repository.LeaseRequestRepository;
 import com.example.leaseworkflow.repository.ReviewActionRepository;
 import com.example.leaseworkflow.repository.StatusHistoryRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,11 +23,14 @@ import java.util.Optional;
 @Service
 public class LeaseRequestService {
 
+    private static final Logger log = LoggerFactory.getLogger(LeaseRequestService.class);
+
     private final LeaseRequestRepository leaseRequestRepository;
     private final DocumentRepository documentRepository;
     private final ReviewActionRepository reviewActionRepository;
     private final StatusHistoryRepository statusHistoryRepository;
     private final ValidationService validationService;
+    private final FileStorageService fileStorageService;
 
     public LeaseRequestService(
             LeaseRequestRepository leaseRequestRepository,
@@ -33,11 +38,23 @@ public class LeaseRequestService {
             ReviewActionRepository reviewActionRepository,
             StatusHistoryRepository statusHistoryRepository,
             ValidationService validationService) {
+        this(leaseRequestRepository, documentRepository, reviewActionRepository, statusHistoryRepository, validationService, new FileStorageService("uploads/documents"));
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public LeaseRequestService(
+            LeaseRequestRepository leaseRequestRepository,
+            DocumentRepository documentRepository,
+            ReviewActionRepository reviewActionRepository,
+            StatusHistoryRepository statusHistoryRepository,
+            ValidationService validationService,
+            FileStorageService fileStorageService) {
         this.leaseRequestRepository = leaseRequestRepository;
         this.documentRepository = documentRepository;
         this.reviewActionRepository = reviewActionRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.validationService = validationService;
+        this.fileStorageService = fileStorageService;
     }
 
     @Transactional
@@ -52,6 +69,7 @@ public class LeaseRequestService {
         }
 
         List<Document> docsToSave = new ArrayList<>();
+        List<MultipartFile> validFilesToPersist = new ArrayList<>();
         boolean hasValidDocument = false;
 
         for (MultipartFile file : files) {
@@ -66,8 +84,10 @@ public class LeaseRequestService {
             if (docVal.isValid()) {
                 document.setValidationResult("VALID");
                 hasValidDocument = true;
+                validFilesToPersist.add(file);
             } else {
                 document.setValidationResult("INVALID: " + docVal.getReason());
+                validFilesToPersist.add(null);
             }
             docsToSave.add(document);
         }
@@ -80,6 +100,7 @@ public class LeaseRequestService {
         leaseRequest.setRequesterId(requesterId.trim());
         leaseRequest.setLeaseType(leaseType.trim());
         leaseRequest.setStatus(LeaseRequest.STATUS_SUBMITTED);
+        leaseRequest.setStage(LeaseRequest.STAGE_LEGAL);
 
         LeaseRequest savedRequest = leaseRequestRepository.save(leaseRequest);
 
@@ -92,15 +113,30 @@ public class LeaseRequestService {
         ));
 
         List<DocumentDto> documentDtos = new ArrayList<>();
-        for (Document doc : docsToSave) {
+        for (int i = 0; i < docsToSave.size(); i++) {
+            Document doc = docsToSave.get(i);
             doc.setRequestId(savedRequest.getId());
+
+            MultipartFile rawFile = validFilesToPersist.get(i);
+            if (rawFile != null && !rawFile.isEmpty()) {
+                try {
+                    FileStorageService.StoredFileInfo fileInfo = fileStorageService.storeFile(rawFile, savedRequest.getId());
+                    doc.setStoragePath(fileInfo.storagePath());
+                    doc.setChecksumSha256(fileInfo.checksumSha256());
+                } catch (Exception e) {
+                    log.warn("Could not write file bytes to disk for {}: {}", doc.getFileName(), e.getMessage());
+                }
+            }
+
             Document savedDoc = documentRepository.save(doc);
             documentDtos.add(new DocumentDto(
                     savedDoc.getId(),
                     savedDoc.getFileName(),
                     savedDoc.getFileType(),
                     savedDoc.getFileSize(),
-                    savedDoc.getValidationResult()
+                    savedDoc.getValidationResult(),
+                    savedDoc.getStoragePath(),
+                    savedDoc.getChecksumSha256()
             ));
         }
 
@@ -120,6 +156,7 @@ public class LeaseRequestService {
         }
 
         List<Document> docsToSave = new ArrayList<>();
+        List<MultipartFile> validFiles = new ArrayList<>();
         boolean hasValidDocument = false;
 
         for (MultipartFile file : files) {
@@ -134,8 +171,10 @@ public class LeaseRequestService {
             if (docVal.isValid()) {
                 document.setValidationResult("VALID");
                 hasValidDocument = true;
+                validFiles.add(file);
             } else {
                 document.setValidationResult("INVALID: " + docVal.getReason());
+                validFiles.add(null);
             }
             docsToSave.add(document);
         }
@@ -147,18 +186,33 @@ public class LeaseRequestService {
         String oldStatus = request.getStatus();
 
         List<DocumentDto> documentDtos = new ArrayList<>();
-        for (Document doc : docsToSave) {
+        for (int i = 0; i < docsToSave.size(); i++) {
+            Document doc = docsToSave.get(i);
+            MultipartFile rawFile = validFiles.get(i);
+            if (rawFile != null && !rawFile.isEmpty()) {
+                try {
+                    FileStorageService.StoredFileInfo fileInfo = fileStorageService.storeFile(rawFile, id);
+                    doc.setStoragePath(fileInfo.storagePath());
+                    doc.setChecksumSha256(fileInfo.checksumSha256());
+                } catch (Exception e) {
+                    log.warn("Could not write file bytes on resubmit for {}: {}", doc.getFileName(), e.getMessage());
+                }
+            }
+
             Document savedDoc = documentRepository.save(doc);
             documentDtos.add(new DocumentDto(
                     savedDoc.getId(),
                     savedDoc.getFileName(),
                     savedDoc.getFileType(),
                     savedDoc.getFileSize(),
-                    savedDoc.getValidationResult()
+                    savedDoc.getValidationResult(),
+                    savedDoc.getStoragePath(),
+                    savedDoc.getChecksumSha256()
             ));
         }
 
         request.setStatus(LeaseRequest.STATUS_SUBMITTED);
+        request.setStage(LeaseRequest.STAGE_LEGAL);
         LeaseRequest saved = leaseRequestRepository.save(request);
 
         // US9 Audit Trail: Record resubmission status transition
@@ -169,14 +223,69 @@ public class LeaseRequestService {
 
     @Transactional
     public LeaseRequestResponseDto approveRequest(Long requestId, String reviewerId) {
+        return approveRequest(requestId, reviewerId, null);
+    }
+
+    @Transactional
+    public LeaseRequestResponseDto approveRequest(Long requestId, String reviewerId, String notes) {
         LeaseRequest request = getExistingRequest(requestId);
         String oldStatus = request.getStatus();
         String reviewer = (reviewerId != null && !reviewerId.trim().isEmpty()) ? reviewerId.trim() : "Reviewer";
+        String commentText = (notes != null && !notes.isBlank()) ? notes.trim() : "Approved by " + reviewer;
 
         request.setStatus(LeaseRequest.STATUS_APPROVED);
+        request.setStage(LeaseRequest.STAGE_COMPLETED);
+        if (reviewer.toLowerCase().contains("finance")) {
+            request.setFinanceReviewer(reviewer);
+            request.setFinanceNotes(commentText);
+        } else {
+            request.setLegalReviewer(reviewer);
+            request.setLegalNotes(commentText);
+        }
+
         LeaseRequest saved = leaseRequestRepository.save(request);
 
-        reviewActionRepository.save(new ReviewAction(requestId, reviewer, "APPROVE", "Approved by reviewer"));
+        reviewActionRepository.save(new ReviewAction(requestId, reviewer, "APPROVE", commentText));
+        statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_APPROVED, reviewer));
+
+        return buildResponseDto(saved);
+    }
+
+    @Transactional
+    public LeaseRequestResponseDto approveLegalStage(Long requestId, String reviewerId, String notes) {
+        LeaseRequest request = getExistingRequest(requestId);
+        String oldStatus = request.getStatus();
+        String reviewer = (reviewerId != null && !reviewerId.trim().isEmpty()) ? reviewerId.trim() : "Legal Reviewer";
+        String commentText = (notes != null && !notes.isBlank()) ? notes.trim() : "Legal compliance verified and approved.";
+
+        request.setStatus(LeaseRequest.STATUS_LEGAL_APPROVED);
+        request.setStage(LeaseRequest.STAGE_FINANCE);
+        request.setLegalReviewer(reviewer);
+        request.setLegalNotes(commentText);
+
+        LeaseRequest saved = leaseRequestRepository.save(request);
+
+        reviewActionRepository.save(new ReviewAction(requestId, reviewer, "LEGAL_APPROVE", commentText));
+        statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_LEGAL_APPROVED, reviewer));
+
+        return buildResponseDto(saved);
+    }
+
+    @Transactional
+    public LeaseRequestResponseDto approveFinanceStage(Long requestId, String reviewerId, String notes) {
+        LeaseRequest request = getExistingRequest(requestId);
+        String oldStatus = request.getStatus();
+        String reviewer = (reviewerId != null && !reviewerId.trim().isEmpty()) ? reviewerId.trim() : "Finance Reviewer";
+        String commentText = (notes != null && !notes.isBlank()) ? notes.trim() : "Financial terms & underwriting audit approved.";
+
+        request.setStatus(LeaseRequest.STATUS_APPROVED);
+        request.setStage(LeaseRequest.STAGE_COMPLETED);
+        request.setFinanceReviewer(reviewer);
+        request.setFinanceNotes(commentText);
+
+        LeaseRequest saved = leaseRequestRepository.save(request);
+
+        reviewActionRepository.save(new ReviewAction(requestId, reviewer, "FINANCE_APPROVE", commentText));
         statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_APPROVED, reviewer));
 
         return buildResponseDto(saved);
@@ -192,6 +301,7 @@ public class LeaseRequestService {
         String reviewer = (reviewerId != null && !reviewerId.trim().isEmpty()) ? reviewerId.trim() : "Reviewer";
 
         request.setStatus(LeaseRequest.STATUS_REJECTED);
+        request.setStage(LeaseRequest.STAGE_COMPLETED);
         LeaseRequest saved = leaseRequestRepository.save(request);
 
         reviewActionRepository.save(new ReviewAction(requestId, reviewer, "REJECT", comment.trim()));
@@ -220,14 +330,19 @@ public class LeaseRequestService {
 
     public List<LeaseRequestResponseDto> getReviewerQueue(String statusFilter) {
         List<LeaseRequest> requests;
-        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+        if (statusFilter != null && !statusFilter.trim().isEmpty() && !"ALL".equalsIgnoreCase(statusFilter) && !"ALL_PENDING".equalsIgnoreCase(statusFilter)) {
             requests = leaseRequestRepository.findAll().stream()
                     .filter(r -> statusFilter.equalsIgnoreCase(r.getStatus()))
                     .toList();
+        } else if ("ALL".equalsIgnoreCase(statusFilter)) {
+            requests = leaseRequestRepository.findAll();
         } else {
+            // Default pending queue (SUBMITTED, UNDER_REVIEW, LEGAL_APPROVED, FINANCE_REVIEW)
             requests = leaseRequestRepository.findAll().stream()
-                    .filter(r -> LeaseRequest.STATUS_SUBMITTED.equals(r.getStatus()) ||
-                                 LeaseRequest.STATUS_UNDER_REVIEW.equals(r.getStatus()))
+                    .filter(r -> LeaseRequest.STATUS_SUBMITTED.equalsIgnoreCase(r.getStatus()) ||
+                                 LeaseRequest.STATUS_UNDER_REVIEW.equalsIgnoreCase(r.getStatus()) ||
+                                 LeaseRequest.STATUS_LEGAL_APPROVED.equalsIgnoreCase(r.getStatus()) ||
+                                 LeaseRequest.STATUS_FINANCE_REVIEW.equalsIgnoreCase(r.getStatus()))
                     .toList();
         }
         return requests.stream().map(this::buildResponseDto).toList();
@@ -252,6 +367,7 @@ public class LeaseRequestService {
         leaseRequest.setRequesterId(requesterId.trim());
         leaseRequest.setLeaseType(leaseType.trim());
         leaseRequest.setStatus(LeaseRequest.STATUS_SUBMITTED);
+        leaseRequest.setStage(LeaseRequest.STAGE_LEGAL);
 
         LeaseRequest saved = leaseRequestRepository.save(leaseRequest);
         statusHistoryRepository.save(new StatusHistory(saved.getId(), null, LeaseRequest.STATUS_SUBMITTED, saved.getRequesterId()));
@@ -276,13 +392,25 @@ public class LeaseRequestService {
             document.setFileSize(file.getSize());
             document.setValidationResult(docVal.isValid() ? "VALID" : "INVALID: " + docVal.getReason());
 
+            if (docVal.isValid()) {
+                try {
+                    FileStorageService.StoredFileInfo fileInfo = fileStorageService.storeFile(file, requestId);
+                    document.setStoragePath(fileInfo.storagePath());
+                    document.setChecksumSha256(fileInfo.checksumSha256());
+                } catch (Exception e) {
+                    log.warn("Could not store file on disk: {}", e.getMessage());
+                }
+            }
+
             Document savedDoc = documentRepository.save(document);
             documentDtos.add(new DocumentDto(
                     savedDoc.getId(),
                     savedDoc.getFileName(),
                     savedDoc.getFileType(),
                     savedDoc.getFileSize(),
-                    savedDoc.getValidationResult()
+                    savedDoc.getValidationResult(),
+                    savedDoc.getStoragePath(),
+                    savedDoc.getChecksumSha256()
             ));
         }
         return documentDtos;
@@ -300,7 +428,15 @@ public class LeaseRequestService {
     private LeaseRequestResponseDto buildResponseDto(LeaseRequest request) {
         List<Document> docs = documentRepository.findByRequestId(request.getId());
         List<DocumentDto> docDtos = docs.stream()
-                .map(d -> new DocumentDto(d.getId(), d.getFileName(), d.getFileType(), d.getFileSize(), d.getValidationResult()))
+                .map(d -> new DocumentDto(
+                        d.getId(),
+                        d.getFileName(),
+                        d.getFileType(),
+                        d.getFileSize(),
+                        d.getValidationResult(),
+                        d.getStoragePath(),
+                        d.getChecksumSha256()
+                ))
                 .toList();
         return buildResponseDto(request, docDtos);
     }
@@ -311,6 +447,11 @@ public class LeaseRequestService {
                 request.getRequesterId(),
                 request.getLeaseType(),
                 request.getStatus(),
+                request.getStage(),
+                request.getLegalReviewer(),
+                request.getFinanceReviewer(),
+                request.getLegalNotes(),
+                request.getFinanceNotes(),
                 request.getCreatedAt(),
                 documentDtos
         );
