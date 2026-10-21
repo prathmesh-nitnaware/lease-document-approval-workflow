@@ -1,6 +1,8 @@
 package com.example.leaseworkflow.config;
 
+import com.example.leaseworkflow.model.AppNotification;
 import com.example.leaseworkflow.model.UserPersona;
+import com.example.leaseworkflow.service.NotificationService;
 import com.example.leaseworkflow.service.PersonaService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,9 +14,11 @@ import java.util.List;
 public class GlobalModelAttributes {
 
     private final PersonaService personaService;
+    private final NotificationService notificationService;
 
-    public GlobalModelAttributes(PersonaService personaService) {
+    public GlobalModelAttributes(PersonaService personaService, NotificationService notificationService) {
         this.personaService = personaService;
+        this.notificationService = notificationService;
     }
 
     @ModelAttribute("currentPersona")
@@ -50,5 +54,15 @@ public class GlobalModelAttributes {
     @ModelAttribute("canReview")
     public boolean canReview(HttpSession session) {
         return personaService.getCurrentPersona(session).canReview();
+    }
+
+    @ModelAttribute("recentNotifications")
+    public List<AppNotification> recentNotifications(HttpSession session) {
+        return notificationService.getNotificationsForPersona(personaService.getCurrentPersona(session));
+    }
+
+    @ModelAttribute("unreadNotificationCount")
+    public long unreadNotificationCount() {
+        return notificationService.getUnreadCount();
     }
 }

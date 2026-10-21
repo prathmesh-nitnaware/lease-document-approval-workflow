@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 7 DevOps Practical Report - Jenkins CI - Lease Document Approval Workflow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --primary: #1e3a8a;
+    --primary-dark: #172554;
+    --text-main: #1f2937;
+    --text-muted: #4b5563;
+    --bg-page: #f9fafb;
+    --bg-card: #ffffff;
+    --border: #e5e7eb;
+    --border-dark: #d1d5db;
+    --accent-blue: #2563eb;
+    --accent-green: #16a34a;
+    --code-bg: #0f172a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    line-height: 1.65;
+    font-size: 14.5px;
+    padding: 30px 20px;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 50px 60px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  /* Academic Header */
+  .report-header {
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 24px;
+    margin-bottom: 35px;
+  }
+
+  .report-badge {
+    display: inline-block;
+    background: #dbeafe;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    margin-bottom: 12px;
+  }
+
+  .report-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .report-subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 20px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 13px;
+  }
+
+  .meta-item strong {
+    color: var(--text-main);
+    display: inline-block;
+    min-width: 110px;
+  }
+
+  /* Typography & Structure */
+  h2 {
+    color: var(--primary);
+    font-size: 19px;
+    font-weight: 700;
+    margin-top: 36px;
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  h3 {
+    color: #1e293b;
+    font-size: 15.5px;
+    font-weight: 600;
+    margin-top: 22px;
+    margin-bottom: 10px;
+  }
+
+  p {
+    margin-bottom: 14px;
+    text-align: justify;
+  }
+
+  ul, ol {
+    margin-bottom: 16px;
+    padding-left: 24px;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
+
+  /* Code Blocks */
+  pre {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 14px 0 18px 0;
+    border: 1px solid #1e293b;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0 24px 0;
+    font-size: 13px;
+  }
+
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border-dark);
+  }
+
+  th {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  /* Figures */
+  .figure-card {
+    margin: 24px 0 30px 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .figure-img-wrapper {
+    background: #0f172a;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .figure-card img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+  }
+
+  .figure-caption {
+    padding: 12px 18px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.45;
+  }
+
+  .figure-caption strong {
+    color: var(--text-main);
+    font-style: normal;
+  }
+
+  /* Callouts */
+  .callout {
+    padding: 14px 18px;
+    border-left: 4px solid var(--accent-blue);
+    background: #eff6ff;
+    border-radius: 0 6px 6px 0;
+    margin: 16px 0;
+    font-size: 13.5px;
+  }
+
+  .callout-success {
+    border-left-color: var(--accent-green);
+    background: #f0fdf4;
+  }
+
+  /* Print specific */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+    .figure-card { break-inside: avoid; }
+    pre, table { break-inside: avoid; }
+    h2 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header Block -->
+  <header class="report-header">
+    <div class="report-badge">Academic Practical Report &bull; Week 7</div>
+    <h1 class="report-title">Continuous Integration Implementation with Jenkins Freestyle Project</h1>
+    <div class="report-subtitle">Automated SCM Polling, Spring Boot Maven Build, MySQL Database Testing, and Build Artifact Archiving</div>
+    
+    <div class="meta-grid">
+      <div class="meta-item"><strong>Project Name:</strong> Lease Document Approval Workflow</div>
+      <div class="meta-item"><strong>Student / Author:</strong> Prathmesh Nitnaware</div>
+      <div class="meta-item"><strong>Repository:</strong> lease-document-approval-workflow</div>
+      <div class="meta-item"><strong>Target Branch:</strong> develop</div>
+      <div class="meta-item"><strong>Jenkins Job:</strong> lease-workflow-ci</div>
+      <div class="meta-item"><strong>Jenkins Version:</strong> 2.568.3</div>
+    </div>
+  </header>
+
+  <!-- Section 1 -->
+  <h2>1. Introduction</h2>
+  <p>Continuous Integration (CI) is a foundational DevOps engineering practice where software engineers frequently commit code into a shared repository, after which each check-in is verified by an automated build and test runner. The primary objective is to detect integration issues and software bugs early, improve release quality, and accelerate software delivery pipelines.</p>
+  <p>In this Week 7 practical assignment, an automated Continuous Integration pipeline was implemented for the <strong>Lease Document Approval Workflow</strong> application using <strong>Jenkins</strong>. The application is built using Java 21, Spring Boot, Spring Data JPA, and Apache Maven, with relational data persistence provided by a local MySQL database. A dedicated Jenkins Freestyle project named <code>lease-workflow-ci</code> was configured to automatically monitor the remote repository's <code>develop</code> branch, trigger builds upon detecting source code changes via SCM polling, compile the Java codebase, execute automated tests with database connectivity, package the application into a Spring Boot executable JAR, and archive the resulting binary as a build artifact.</p>
+
+  <!-- Section 2 -->
+  <h2>2. Objectives</h2>
+  <p>The implementation fulfilled the following specific practical objectives:</p>
+  <ul>
+    <li><strong>Remote SCM Integration:</strong> Connect Jenkins securely to GitHub using a dedicated Personal Access Token (PAT) credential.</li>
+    <li><strong>Automated SCM Triggering:</strong> Configure periodic SCM polling on the <code>develop</code> branch to automatically initiate builds without manual triggering.</li>
+    <li><strong>Automated Java Compilation:</strong> Execute Apache Maven 3.9.16 with OpenJDK 21.0.11 to compile all application and test sources.</li>
+    <li><strong>Automated Unit & Integration Testing:</strong> Execute JUnit 5 test suites and ensure all 7 automated tests pass with zero failures and zero errors.</li>
+    <li><strong>Relational Database Integration:</strong> Connect the CI test runner dynamically to the local MySQL database (<code>lease_workflow</code>) using connection pooling (HikariCP).</li>
+    <li><strong>Secure Credential Management:</strong> Inject sensitive database credentials via Jenkins Secret Text credentials and verify that no secrets or local configuration files are tracked in Git.</li>
+    <li><strong>Artifact Packaging & Archiving:</strong> Package the Spring Boot executable JAR and archive it within Jenkins with MD5 fingerprint tracking.</li>
+  </ul>
+
+  <!-- Section 3 -->
+  <h2>3. Project and Environment</h2>
+  <p>The CI environment was built on a dedicated Windows controller using the exact specifications detailed below:</p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Identifier / Value</th>
+        <th>Version</th>
+        <th>Role in Pipeline</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Project</strong></td>
+        <td>Lease Document Approval Workflow</td>
+        <td>0.0.1-SNAPSHOT</td>
+        <td>Core Spring Boot application under test</td>
+      </tr>
+      <tr>
+        <td><strong>Repository</strong></td>
+        <td>lease-document-approval-workflow</td>
+        <td>Git</td>
+        <td>Remote repository on GitHub</td>
+      </tr>
+      <tr>
+        <td><strong>Monitored Branch</strong></td>
+        <td>develop</td>
+        <td>N/A</td>
+        <td>Primary branch for integration testing</td>
+      </tr>
+      <tr>
+        <td><strong>CI Server</strong></td>
+        <td>Jenkins (Freestyle Project)</td>
+        <td>2.568.3</td>
+        <td>Automation controller</td>
+      </tr>
+      <tr>
+        <td><strong>Jenkins Job</strong></td>
+        <td>lease-workflow-ci</td>
+        <td>Freestyle</td>
+        <td>Continuous integration build job</td>
+      </tr>
+      <tr>
+        <td><strong>Java Development Kit</strong></td>
+        <td>OpenJDK / HotSpot 64-Bit</td>
+        <td>21.0.11</td>
+        <td>Application runtime and compilation engine</td>
+      </tr>
+      <tr>
+        <td><strong>Build Tool</strong></td>
+        <td>Apache Maven</td>
+        <td>3.9.16</td>
+        <td>Build and dependency management</td>
+      </tr>
+      <tr>
+        <td><strong>Git Plugin</strong></td>
+        <td>git</td>
+        <td>5.10.1</td>
+        <td>Jenkins Git SCM integration</td>
+      </tr>
+      <tr>
+        <td><strong>Git Client Plugin</strong></td>
+        <td>git-client</td>
+        <td>6.6.1</td>
+        <td>Git command-line interface provider</td>
+      </tr>
+      <tr>
+        <td><strong>GitHub Plugin</strong></td>
+        <td>github</td>
+        <td>1.47.0</td>
+        <td>GitHub repository management plugin</td>
+      </tr>
+      <tr>
+        <td><strong>GitHub API Plugin</strong></td>
+        <td>github-api</td>
+        <td>1.330-492.v3941a_032db_2a_</td>
+        <td>GitHub REST API communication library</td>
+      </tr>
+      <tr>
+        <td><strong>Maven Integration Plugin</strong></td>
+        <td>maven-plugin</td>
+        <td>3.27</td>
+        <td>Maven lifecycle runner for Jenkins</td>
+      </tr>
+      <tr>
+        <td><strong>Database Server</strong></td>
+        <td>MySQL Community Server</td>
+        <td>8.0.46</td>
+        <td>Relational backend (schema: <code>lease_workflow</code>)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Section 4 -->
+  <h2>4. Jenkins Configuration</h2>
+
+  <h3>4.1 Jenkins Installation</h3>
+  <p>Jenkins version <code>2.568.3</code> runs locally on port 8080 under the dedicated service account <code>jenkins-svc</code>. The job workspace is situated at <code>C:\Users\jenkins-svc\AppData\Local\Jenkins\.jenkins\workspace\lease-workflow-ci</code>.</p>
+
+  <h3>4.2 GitHub Integration & Source Code Management</h3>
+  <p>The job is linked to the GitHub repository using Git SCM:</p>
+  <ul>
+    <li><strong>Repository URL:</strong> <code>https://github.com/prathmesh-nitnaware/lease-document-approval-workflow</code></li>
+    <li><strong>Credentials:</strong> Jenkins GitHub PAT credential with ID <code>github-pat</code></li>
+    <li><strong>Branch Specifier:</strong> <code>*/develop</code></li>
+  </ul>
+
+  <h3>4.3 SCM Polling</h3>
+  <p>To detect changes pushed or merged to the remote repository, SCM polling was configured with the cron schedule:</p>
+  <pre><code>H/5 * * * *</code></pre>
+  <p>Jenkins polls GitHub approximately every 5 minutes. The hash syntax (<code>H</code>) distributes system load evenly across time, ensuring that the controller periodically checks <code>git ls-remote</code> on <code>refs/heads/develop</code> and automatically schedules a build when a new commit hash is detected.</p>
+
+  <h3>4.4 Build Environment & Credential Handling</h3>
+  <p>To provide the database password without hardcoding it in scripts, Jenkins's built-in credential manager was used under <strong>Build Environment</strong> &rarr; <em>"Use secret text(s) or file(s)"</em>:</p>
+  <ul>
+    <li><strong>Credential Type:</strong> Secret Text</li>
+    <li><strong>Credential ID:</strong> <code>mysql-db-password</code></li>
+    <li><strong>Variable Name:</strong> <code>DB_PASSWORD</code></li>
+  </ul>
+  <p><em>Security Justification:</em> Injecting secrets dynamically via Jenkins ensures that production/database passwords never exist in plaintext within the repository, protecting systems against unauthorized credential harvesting.</p>
+
+  <h3>4.5 Maven Build Step</h3>
+  <p>Under <strong>Build Steps</strong>, an <em>Execute Windows batch command</em> step was configured to supply Spring datasource properties dynamically before running Maven:</p>
+  <pre><code>set SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/lease_workflow
+set SPRING_DATASOURCE_USERNAME=root
+set SPRING_DATASOURCE_PASSWORD=%DB_PASSWORD%
+
+mvn clean package
+
+if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%</code></pre>
+  <p>This script binds the Spring Boot application directly to the local MySQL schema, initiates compilation and testing, and halts immediately if Maven returns an error code.</p>
+
+  <h3>4.6 Artifact Archiving</h3>
+  <p>Under <strong>Post-build Actions</strong>, <em>Archive the artifacts</em> was configured to archive <code>target/*.jar</code> with fingerprinting enabled, registering an MD5 checksum of the generated Spring Boot JAR for auditing and traceability.</p>
+
+  <!-- Section 5 -->
+  <h2>5. Important Security Handling</h2>
+  <p>To prevent credentials from leaking into Git, <code>application-local.yml</code> was explicitly added to <code>.gitignore</code>. Three verification checks were executed via Git CLI:</p>
+  <ol>
+    <li><code>git ls-files src\main\resources\application-local.yml</code> &mdash; returned <strong>no output</strong> (file is not tracked).</li>
+    <li><code>git log --all -- src/main/resources/application-local.yml</code> &mdash; returned <strong>no output</strong> (file was never committed in Git history).</li>
+    <li><code>git check-ignore -v src\main\resources\application-local.yml</code> &mdash; output confirmed:
+      <pre><code>.gitignore:27:application-local.yml  src/main/resources/application-local.yml</code></pre>
+    </li>
+  </ol>
+  <p>This proves that credentials remain strictly outside version control, with all secrets supplied at runtime via Jenkins credentials.</p>
+
+  <!-- Section 6 -->
+  <h2>6. CI Build Process (Build #8)</h2>
+  <p>The successful execution of <strong>Build #8</strong> verified the complete automated CI pipeline:</p>
+  <ol>
+    <li>Jenkins SCM polling detected a commit change on <code>refs/heads/develop</code>.</li>
+    <li>Jenkins automatically started <strong>Build #8</strong> with the trigger cause: <code>Started by an SCM change</code>.</li>
+    <li>The <code>develop</code> branch was checked out at commit <code>d9dec03</code>.</li>
+    <li>Maven 3.9.16 and OpenJDK 21.0.11 compiled 16 application source files and 2 test files.</li>
+    <li>Spring Boot initialized HikariCP and successfully connected to MySQL database <code>lease_workflow</code>.</li>
+    <li>Automated tests were executed against the application context and business service.</li>
+    <li>The application was packaged into an executable JAR.</li>
+    <li>Jenkins archived the JAR artifact and recorded fingerprints.</li>
+    <li>The build completed with <code>Finished: SUCCESS</code> in 24.819 seconds.</li>
+  </ol>
+
+  <!-- Section 7 -->
+  <h2>7. Automated Test Results</h2>
+  <p>The automated test suite comprised 7 JUnit tests across two test suites. All seven tests executed and passed successfully with zero failures, zero errors, and zero skipped tests:</p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Test Suite Class</th>
+        <th>Tests Run</th>
+        <th>Failures</th>
+        <th>Errors</th>
+        <th>Skipped</th>
+        <th>Time Elapsed</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>com.example.leaseworkflow.LeaseDocumentApprovalWorkflowApplicationTests</code></td>
+        <td>1</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+        <td>11.20 s</td>
+        <td><strong>PASSED</strong></td>
+      </tr>
+      <tr>
+        <td><code>com.example.leaseworkflow.service.LeaseRequestServiceTest</code></td>
+        <td>6</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+        <td>1.430 s</td>
+        <td><strong>PASSED</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Total Test Summary</strong></td>
+        <td><strong>7</strong></td>
+        <td><strong>0</strong></td>
+        <td><strong>0</strong></td>
+        <td><strong>0</strong></td>
+        <td><strong>12.63 s</strong></td>
+        <td><strong>ALL PASSED</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>The Jenkins console output confirmed:</p>
+  <pre><code>[INFO] Results:
+[INFO] 
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] BUILD SUCCESS
+Archiving artifacts
+Recording fingerprints
+Finished: SUCCESS</code></pre>
+
+  <!-- Section 8 -->
+  <h2>8. MySQL Database Integration Verification</h2>
+  <p>The Spring Boot application context bootstrapped Spring Data JPA and Hibernate ORM against the local MySQL instance. The Jenkins console output verified active connectivity:</p>
+  <pre><code>2026-09-18T22:08:02.656+05:30  INFO 11072 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/lease_workflow]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.0.46
+	Default catalog/schema: lease_workflow/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider</code></pre>
+  <p>HikariCP logged <code>HikariPool-1 - Added connection</code> and <code>HikariPool-1 - Start completed</code>, demonstrating that the CI test environment authenticated and connected to MySQL without exposing credentials.</p>
+
+  <!-- Section 9 -->
+  <h2>9. SCM Trigger Verification</h2>
+  <p>To verify automated SCM triggering without manual build invocation:</p>
+  <ul>
+    <li>A README update was authored: <code>docs: update README for Jenkins CI</code>.</li>
+    <li>Because direct push to <code>develop</code> is protected, the commit was pushed to temporary branch <code>ci/scm-polling-test</code> and merged via <strong>Pull Request #8</strong> into <code>develop</code>.</li>
+    <li>Jenkins SCM polling detected revision <code>d9dec03a216f85ecf55002e13fe2ba681b5bcc0b</code> within 5 minutes.</li>
+    <li>Jenkins automatically created and ran <strong>Build #8</strong>, displaying <code>Started by an SCM change</code>.</li>
+  </ul>
+
+  <!-- Section 10 -->
+  <h2>10. Artifact Generation and Archiving Verification</h2>
+  <p>During the package phase, the <code>spring-boot-maven-plugin</code> assembled the standalone executable JAR:</p>
+  <ul>
+    <li><strong>Artifact File:</strong> <code>lease-document-approval-workflow-0.0.1-SNAPSHOT.jar</code></li>
+    <li><strong>Artifact Size:</strong> <code>51.50 MiB</code> (54,001,084 bytes)</li>
+    <li><strong>Archival Location:</strong> <code>C:\Users\jenkins-svc\AppData\Local\Jenkins\.jenkins\jobs\lease-workflow-ci\builds\8\archive\target</code></li>
+  </ul>
+  <p>Jenkins successfully verified and archived the packaged JAR as a permanent build artifact.</p>
+
+  <!-- Section 11 -->
+  <h2>11. Evidence Screenshots</h2>
+
+  <div class="figure-card">
+    <div class="figure-img-wrapper">
+      <img src="images/fig1-scm-trigger.png" alt="Jenkins Build 8 triggered by SCM change">
+    </div>
+    <div class="figure-caption">
+      <strong>Figure 1:</strong> Jenkins Build #8 automatically triggered by an SCM change. The status page documents the trigger provenance (<em>"Started by an SCM change"</em>), commit hash <code>d9dec03</code>, and commit message <em>"docs: update README for Jenkins CI"</em>.
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <div class="figure-img-wrapper">
+      <img src="images/fig2-console-build-success.png" alt="Jenkins console output showing test results and build success">
+    </div>
+    <div class="figure-caption">
+      <strong>Figure 2:</strong> Jenkins console output showing successful tests (<code>Tests run: 7, Failures: 0, Errors: 0, Skipped: 0</code>), packaging, Maven <code>BUILD SUCCESS</code>, artifact archiving, and final <code>SUCCESS</code> status.
+    </div>
+  </div>
+
+  <div class="figure-card">
+    <div class="figure-img-wrapper">
+      <img src="images/fig3-archived-artifact.png" alt="Successfully archived Spring Boot JAR artifact">
+    </div>
+    <div class="figure-caption">
+      <strong>Figure 3:</strong> Successfully archived Spring Boot JAR artifact (<code>lease-document-approval-workflow-0.0.1-SNAPSHOT.jar</code>, 51.50 MiB). The dashboard also confirms the automated SCM trigger source.
+    </div>
+  </div>
+
+  <!-- Section 12 -->
+  <h2>12. Technologies and Versions Reference</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Technology</th>
+        <th>Version</th>
+        <th>Category / Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Jenkins</td><td>2.568.3</td><td>Continuous Integration Automation Server</td></tr>
+      <tr><td>Java / JDK</td><td>21.0.11</td><td>Runtime Environment & Compilation Target</td></tr>
+      <tr><td>Apache Maven</td><td>3.9.16</td><td>Build Lifecycle & Dependency Management</td></tr>
+      <tr><td>Git Plugin</td><td>5.10.1</td><td>Jenkins Git SCM Integration</td></tr>
+      <tr><td>Git Client Plugin</td><td>6.6.1</td><td>Low-Level Git CLI Abstraction</td></tr>
+      <tr><td>GitHub Plugin</td><td>1.47.0</td><td>GitHub Integration & Webhooks</td></tr>
+      <tr><td>GitHub API Plugin</td><td>1.330-492.v3941a_032db_2a_</td><td>GitHub REST API Client Library</td></tr>
+      <tr><td>Maven Integration Plugin</td><td>3.27</td><td>Jenkins Native Maven Support</td></tr>
+      <tr><td>MySQL Server</td><td>8.0.46</td><td>Relational Database Engine</td></tr>
+      <tr><td>Hibernate ORM</td><td>7.4.1.Final</td><td>JPA Persistence Provider</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Section 13 -->
+  <h2>13. Challenges and Solutions</h2>
+
+  <h3>Challenge 1: Spring Boot test failed because datasource configuration was missing in Jenkins</h3>
+  <p><strong>Cause:</strong> <code>application-local.yml</code> was ignored by Git to protect sensitive passwords. Consequently, the fresh Jenkins checkout lacked database credentials, causing the Spring Boot test context to fail.</p>
+  <p><strong>Solution:</strong> Database configuration was supplied dynamically through Jenkins build-level environment variables (<code>SPRING_DATASOURCE_URL</code>, <code>SPRING_DATASOURCE_USERNAME</code>) combined with a securely stored Jenkins Secret Text credential (<code>mysql-db-password</code> exposed as <code>%DB_PASSWORD%</code>).</p>
+
+  <h3>Challenge 2: MySQL authentication failure during local testing</h3>
+  <p><strong>Cause:</strong> The initially configured MySQL password was incorrect during preliminary setup.</p>
+  <p><strong>Solution:</strong> The database credentials were verified and corrected in the Jenkins Secret Text credential store, enabling seamless authentication.</p>
+
+  <h3>Challenge 3: Direct push to develop was rejected</h3>
+  <p><strong>Cause:</strong> The GitHub repository enforces branch protection on <code>develop</code>, rejecting direct command-line pushes.</p>
+  <p><strong>Solution:</strong> A separate branch (<code>ci/scm-polling-test</code>) was created, the commit was pushed there, and Pull Request #8 was submitted and merged into <code>develop</code>. Jenkins SCM polling automatically detected the merge.</p>
+
+  <!-- Section 14 -->
+  <h2>14. Result / Outcome</h2>
+  <div class="callout callout-success">
+    <p><strong>Factual Outcome:</strong> The Jenkins Freestyle CI job <code>lease-workflow-ci</code> successfully:</p>
+    <ul style="margin-bottom: 0;">
+      <li>Retrieved the <code>develop</code> branch from GitHub.</li>
+      <li>Used Jenkins-managed credentials without exposing tokens or secrets.</li>
+      <li>Detected an SCM change automatically via polling.</li>
+      <li>Compiled the Maven project under Java 21.</li>
+      <li>Connected to MySQL database <code>lease_workflow</code> (version 8.0.46).</li>
+      <li>Executed 7 automated tests across 2 test suites.</li>
+      <li>Passed all 7 tests with 0 failures, 0 errors, and 0 skipped.</li>
+      <li>Packaged the Spring Boot application into an executable JAR.</li>
+      <li>Archived <code>lease-document-approval-workflow-0.0.1-SNAPSHOT.jar</code> (51.50 MiB) with fingerprinting.</li>
+      <li>Completed with <code>Finished: SUCCESS</code> in 24.819 seconds.</li>
+    </ul>
+  </div>
+
+  <!-- Section 15 -->
+  <h2>15. Conclusion</h2>
+  <p>The Week 7 DevOps practical successfully demonstrated the implementation and verification of an automated Continuous Integration pipeline using Jenkins Freestyle Project. By establishing SCM polling on GitHub's <code>develop</code> branch, enforcing zero test failures, securing credentials outside Git, and automatically archiving validated deployable artifacts, the project achieved a robust, hands-on CI workflow aligned with professional DevOps practices.</p>
+
+</div>
+
+</body>
+</html>

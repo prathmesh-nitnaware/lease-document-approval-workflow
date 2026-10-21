@@ -15,15 +15,31 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+import com.example.leaseworkflow.service.AnnotationService;
+import com.example.leaseworkflow.service.DocumentIntelligenceService;
+
 @Controller
 public class LeaseRequestWebController {
 
     private final LeaseRequestService leaseRequestService;
     private final PersonaService personaService;
+    private final AnnotationService annotationService;
+    private final DocumentIntelligenceService documentIntelligenceService;
 
     public LeaseRequestWebController(LeaseRequestService leaseRequestService, PersonaService personaService) {
+        this(leaseRequestService, personaService, null, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public LeaseRequestWebController(
+            LeaseRequestService leaseRequestService,
+            PersonaService personaService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) AnnotationService annotationService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) DocumentIntelligenceService documentIntelligenceService) {
         this.leaseRequestService = leaseRequestService;
         this.personaService = personaService;
+        this.annotationService = annotationService;
+        this.documentIntelligenceService = documentIntelligenceService;
     }
 
     @GetMapping("/submit-request")
@@ -138,9 +154,32 @@ public class LeaseRequestWebController {
                     model.addAttribute("request", req);
                     model.addAttribute("reviewActions", leaseRequestService.getReviewActions(id));
                     model.addAttribute("statusHistory", leaseRequestService.getStatusHistory(id));
+                    if (annotationService != null) {
+                        model.addAttribute("annotations", annotationService.getAnnotationsByRequestId(id));
+                    }
+                    if (documentIntelligenceService != null) {
+                        model.addAttribute("aiAnalysis", documentIntelligenceService.analyzeRequest(id, req.getLeaseType()));
+                    }
                     return "track-request";
                 })
                 .orElse("redirect:/submit-request");
+    }
+
+    @PostMapping("/reviewer/requests/{id}/annotations")
+    public String addAnnotation(
+            @PathVariable("id") Long id,
+            @RequestParam(value = "documentId", defaultValue = "0") Long documentId,
+            @RequestParam(value = "clauseTag", defaultValue = "General Clause") String clauseTag,
+            @RequestParam(value = "severity", defaultValue = "WARNING") String severity,
+            @RequestParam("noteText") String noteText,
+            HttpSession session,
+            jakarta.servlet.http.HttpServletRequest request) {
+        if (annotationService != null) {
+            String reviewer = resolveReviewerId(null, session);
+            annotationService.addAnnotation(id, documentId, reviewer, clauseTag, severity, noteText);
+        }
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null && !referer.isBlank() ? referer : "/reviewer-queue");
     }
 
     @PostMapping("/track-request/{id}/resubmit")
