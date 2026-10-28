@@ -50,9 +50,17 @@ public class DashboardPageTest {
     }
 
     @Test
+    @DisplayName("4b. Unauthenticated access to /dashboard redirects to /login")
+    void testDashboardUnauthenticated_RedirectsToLogin() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?redirectUrl=/dashboard"));
+    }
+
+    @Test
     @DisplayName("5. Dashboard empty state renders zeros and friendly activity message")
     void testDashboardEmptyState_RendersZerosAndFriendlyMessage() throws Exception {
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/dashboard").sessionAttr("USER_LOGGED_IN", true))
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
                 .andExpect(content().string(containsString("id=\"kpi-total\">0<")))
@@ -76,7 +84,7 @@ public class DashboardPageTest {
         StatusHistory history = new StatusHistory(req.getId(), null, LeaseRequest.STATUS_SUBMITTED, "Requester Portal");
         statusHistoryRepository.save(history);
 
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/dashboard").sessionAttr("USER_LOGGED_IN", true))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"kpi-total\">1<")))
                 .andExpect(content().string(containsString("id=\"kpi-pending\">1<")))
@@ -97,7 +105,7 @@ public class DashboardPageTest {
         StatusHistory history = new StatusHistory(req.getId(), LeaseRequest.STATUS_UNDER_REVIEW, LeaseRequest.STATUS_APPROVED, "Reviewer-01");
         statusHistoryRepository.save(history);
 
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/dashboard").sessionAttr("USER_LOGGED_IN", true))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"kpi-total\">1<")))
                 .andExpect(content().string(containsString("id=\"kpi-approved\">1<")))

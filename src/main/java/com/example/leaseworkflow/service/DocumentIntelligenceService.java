@@ -151,7 +151,18 @@ public class DocumentIntelligenceService {
         if (content == null || content.length == 0) {
             return "";
         }
-        // Extract plain text or text strings embedded in PDF streams
+        if (fileName != null && fileName.toLowerCase().endsWith(".pdf")) {
+            try (org.apache.pdfbox.pdmodel.PDDocument document = org.apache.pdfbox.Loader.loadPDF(content)) {
+                org.apache.pdfbox.text.PDFTextStripper stripper = new org.apache.pdfbox.text.PDFTextStripper();
+                String pdfText = stripper.getText(document);
+                if (pdfText != null && !pdfText.isBlank()) {
+                    return pdfText;
+                }
+            } catch (Exception e) {
+                log.warn("Apache PDFBox extraction failed for {}, falling back to stream parsing: {}", fileName, e.getMessage());
+            }
+        }
+        // Fallback: Extract plain text or text strings embedded in stream bytes
         String raw = new String(content, StandardCharsets.ISO_8859_1);
         StringBuilder sb = new StringBuilder();
         for (char c : raw.toCharArray()) {

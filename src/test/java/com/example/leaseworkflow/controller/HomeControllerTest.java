@@ -67,9 +67,17 @@ public class HomeControllerTest {
     }
 
     @Test
-    @DisplayName("GET /dashboard returns HTTP 200 and renders dashboard view")
-    void testGetDashboard_ReturnsOkAndRendersDashboard() throws Exception {
+    @DisplayName("GET /dashboard unauthenticated redirects to /login")
+    void testGetDashboard_UnauthenticatedRedirectsToLogin() throws Exception {
         mockMvc.perform(get("/dashboard"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?redirectUrl=/dashboard"));
+    }
+
+    @Test
+    @DisplayName("GET /dashboard returns HTTP 200 and renders dashboard view when authenticated")
+    void testGetDashboard_ReturnsOkAndRendersDashboard() throws Exception {
+        mockMvc.perform(get("/dashboard").sessionAttr("USER_LOGGED_IN", true))
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
                 .andExpect(model().attributeExists("appVersion"))

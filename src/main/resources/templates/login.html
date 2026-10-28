@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sign In')}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — LeaseFlow</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/theme-luxury.css}">
+</head>
+<body class="app-body">
+
+    <!-- Shared Navigation -->
+    <header th:replace="~{fragments/layout :: navbar('login')}"></header>
+
+    <!-- Shared Flash Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main id="main-content" style="position: relative; overflow: hidden; min-height: 80vh; display: flex; align-items: center;">
+        <!-- Background Effects -->
+        <div class="glow-orb" style="width: 500px; height: 500px; background: rgba(124, 58, 237, 0.1); top: -150px; right: -100px;"></div>
+        <div class="glow-orb" style="width: 350px; height: 350px; background: rgba(6, 182, 212, 0.06); bottom: -100px; left: -50px;"></div>
+        <div class="grid-pattern"></div>
+
+        <div class="container" style="max-width: 960px; position: relative; z-index: 2; padding-top: 2rem; padding-bottom: 3rem;">
+            
+            <!-- Page Header -->
+            <div class="text-center mb-5 animate-fade-in">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 4px 14px; border-radius: 9999px; background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.2); color: #a78bfa; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem;">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Secure Access</span>
+                </div>
+                <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem;">
+                    Welcome to <span style="background: linear-gradient(135deg, #a78bfa, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">LeaseFlow</span>
+                </h1>
+                <p style="font-size: 0.95rem; color: #71717a;">Sign in with your credentials or use instant role-based access.</p>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                
+                <!-- Standard Form Login -->
+                <div class="col-lg-5 col-md-6">
+                    <div class="card animate-fade-in" style="animation-delay: 100ms; overflow: hidden;">
+                        <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(6, 182, 212, 0.1) 100%); padding: 1.5rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 48px; height: 48px; background: linear-gradient(135deg, #7c3aed, #a78bfa); box-shadow: 0 0 24px rgba(124, 58, 237, 0.3);">
+                                <i class="bi bi-shield-lock-fill fs-5 text-white"></i>
+                            </div>
+                            <h2 class="h5 fw-bold mb-0" style="color: #fafafa !important;">Platform Sign In</h2>
+                            <small style="color: #a1a1aa;">Enterprise Lease Workflow</small>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div th:if="${errorMessage}" class="alert alert-danger p-2 small mb-3" th:text="${errorMessage}"></div>
+                            <div th:if="${successMessage}" class="alert alert-success p-2 small mb-3" th:text="${successMessage}"></div>
+
+                            <form th:action="@{/login}" method="post">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label small fw-semibold">Username / Corporate ID</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-person" style="color: #a78bfa;"></i></span>
+                                        <input type="text" id="username" name="username" class="form-control" placeholder="e.g. sarah.legal" required autofocus>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label small fw-semibold">Password</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-key" style="color: #a78bfa;"></i></span>
+                                        <input type="password" id="password" name="password" class="form-control" placeholder="Default: password123" required>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 py-2 mt-2 fw-semibold">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Sign In
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instant One-Click Demo Personas -->
+                <div class="col-lg-6 col-md-6">
+                    <div class="card animate-fade-in" style="animation-delay: 200ms; padding: 1.5rem;">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 146, 60, 0.15)); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(251, 191, 36, 0.2);">
+                                <i class="bi bi-lightning-charge-fill" style="color: #fbbf24;"></i>
+                            </div>
+                            <div>
+                                <h3 class="h6 fw-bold mb-0" style="color: #fafafa !important;">Quick Access</h3>
+                                <small style="color: #71717a;">Switch between pre-configured RBAC roles instantly</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2 stagger-children">
+                            <a th:each="p : ${availablePersonas}" 
+                               th:href="@{/quick-login(personaId=${p.id})}"
+                               class="d-flex align-items-center justify-content-between p-3 rounded-3 text-decoration-none animate-fade-in"
+                               style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); transition: all 0.2s ease;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="persona-avatar-badge rounded-circle text-white fw-bold d-flex align-items-center justify-content-center"
+                                          th:style="'width: 40px; height: 40px; font-size: 0.8rem; background-color:' + ${p.role.themeColor}"
+                                          th:text="${p.avatarInitials}">JD</span>
+                                    <div>
+                                        <div class="fw-semibold small" style="color: #fafafa;" th:text="${p.displayName}">John Doe</div>
+                                        <div style="font-size: 0.75rem; color: #a1a1aa;" th:text="${p.role.displayName}">Tenant</div>
+                                    </div>
+                                </div>
+                                <span class="btn btn-sm" style="background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.2); color: #a78bfa; font-size: 0.73rem; font-weight: 600;">Sign In &rarr;</span>
+                            </a>
+                        </div>
+
+                        <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.04);">
+                            <div class="d-flex align-items-center gap-2" style="font-size: 0.75rem; color: #52525b;">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Each persona demonstrates different access levels and workflow permissions.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Shared Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- Vendor Scripts -->
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <style>
+        .col-lg-6 a[href*="quick-login"]:hover {
+            background: rgba(124, 58, 237, 0.06) !important;
+            border-color: rgba(124, 58, 237, 0.2) !important;
+            transform: translateX(4px);
+        }
+    </style>
+</body>
+</html>

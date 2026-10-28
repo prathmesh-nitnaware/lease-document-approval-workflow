@@ -46,9 +46,24 @@ public class NotificationController {
     }
 
     @PostMapping("/notifications/mark-all-read")
-    public String webMarkAllRead(HttpServletRequest request) {
-        notificationService.markAllAsRead();
+    public String webMarkAllRead(HttpSession session, HttpServletRequest request) {
+        UserPersona persona = personaService.getCurrentPersona(session);
+        notificationService.markAllAsReadForPersona(persona);
         String referer = request.getHeader("Referer");
-        return "redirect:" + (referer != null && !referer.isBlank() ? referer : "/submit-request");
+        return "redirect:" + (referer != null && !referer.isBlank() ? referer : "/dashboard");
+    }
+
+    @GetMapping("/notifications/{id}/open")
+    public String openNotification(@PathVariable("id") Long id) {
+        return notificationService.getNotification(id)
+                .map(n -> {
+                    notificationService.markAsRead(id);
+                    String link = n.getLinkUrl();
+                    if (link != null && !link.isBlank()) {
+                        return "redirect:" + link;
+                    }
+                    return "redirect:/dashboard";
+                })
+                .orElse("redirect:/dashboard");
     }
 }

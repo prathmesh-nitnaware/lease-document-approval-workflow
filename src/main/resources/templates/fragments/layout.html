@@ -15,6 +15,7 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/theme-luxury.css}">
 </head>
 
 <body>
@@ -43,28 +44,27 @@
 
                 <!-- Navigation Links -->
                 <nav aria-label="Main Navigation">
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav d-flex flex-row align-items-center gap-2 m-0 p-0">
                         <li>
                             <a th:href="@{/}" class="nav-link" id="nav-link-home" th:classappend="${activeTab == 'home' ? 'active' : ''}">
                                 <span>Home</span>
                             </a>
                         </li>
-                        <li>
+                        <li th:if="${isAuthenticated}">
                             <a th:href="@{/dashboard}" class="nav-link" id="nav-link-dashboard" th:classappend="${activeTab == 'dashboard' ? 'active' : ''}">
                                 <span>Dashboard</span>
                             </a>
                         </li>
-                        <li>
+                        <li th:if="${isAuthenticated and isTenant}">
                             <a th:href="@{/submit-request}" class="nav-link" id="nav-link-submit"
                                 th:classappend="${activeTab == 'submit' ? 'active' : ''}">
                                 <span>Submit Request</span>
                             </a>
                         </li>
-                        <li>
+                        <li th:if="${isAuthenticated and canReview}">
                             <a th:href="@{/reviewer-queue}" class="nav-link" id="nav-link-reviewer"
                                 th:classappend="${activeTab == 'reviewer' ? 'active' : ''}">
                                 <span>Reviewer Queue</span>
-                                <span th:if="${isTenant}" class="badge bg-secondary ms-1" style="font-size: 0.65rem;">Tenant View</span>
                             </a>
                         </li>
                     </ul>
@@ -72,36 +72,36 @@
 
                 <!-- Quick Action / CTA & Persona Switcher -->
                 <div class="navbar-actions d-flex align-items-center gap-2">
-                    <!-- Demo Persona Switcher Dropdown -->
-                    <div class="dropdown persona-dropdown" th:if="${currentPersona != null}">
+                    <!-- When Authenticated: Show Active Persona Profile & Switcher -->
+                    <div class="dropdown persona-dropdown" th:if="${isAuthenticated and currentPersona != null}">
                         <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2 persona-toggle-btn"
                                 type="button" id="personaDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                title="Switch Demo Role Persona">
-                            <span class="persona-avatar-badge"
+                                title="Active User Profile & Role Switcher">
+                            <span class="persona-avatar-badge text-white"
                                   th:style="'background-color:' + ${currentPersona.role.themeColor}"
                                   th:text="${currentPersona.avatarInitials}">SJ</span>
                             <span class="d-none d-lg-inline text-start">
-                                <span class="d-block fw-semibold text-white" style="font-size: 0.8rem; line-height: 1.1;"
+                                <span class="d-block fw-semibold text-dark" style="font-size: 0.8rem; line-height: 1.1;"
                                       th:text="${currentPersona.displayName}">Sarah Jenkins</span>
                                 <span class="d-block text-muted" style="font-size: 0.68rem;"
                                       th:text="${currentPersona.role.displayName}">Legal Officer</span>
                             </span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg persona-menu p-2" aria-labelledby="personaDropdown" style="min-width: 290px; background-color: var(--bg-surface-elevated, #1e293b); border: 1px solid var(--border-default, #334155);">
+                        <ul class="dropdown-menu dropdown-menu-end shadow persona-menu p-2" aria-labelledby="personaDropdown" style="min-width: 290px;">
                             <li class="dropdown-header px-2 py-1 text-uppercase fw-bold text-muted" style="font-size: 0.68rem; letter-spacing: 0.05em;">
-                                <i class="bi bi-people-fill me-1"></i> Switch Active Role (Demo Mode)
+                                <i class="bi bi-person-badge me-1"></i> Switch Active Profile
                             </li>
-                            <li><hr class="dropdown-divider my-1" style="border-color: var(--border-subtle, #334155);"></li>
+                            <li><hr class="dropdown-divider my-1"></li>
                             <li th:each="p : ${availablePersonas}">
                                 <a class="dropdown-item rounded-2 py-2 px-2 d-flex align-items-center gap-2"
                                    th:classappend="${p.id == currentPersona.id ? 'active-persona-item' : ''}"
                                    th:href="@{/switch-persona(personaId=${p.id})}">
-                                    <span class="persona-avatar-badge flex-shrink-0"
+                                    <span class="persona-avatar-badge flex-shrink-0 text-white"
                                           th:style="'background-color:' + ${p.role.themeColor}"
                                           th:text="${p.avatarInitials}">JD</span>
                                     <div class="flex-grow-1 overflow-hidden">
                                         <div class="d-flex align-items-center justify-content-between">
-                                            <span class="fw-semibold text-white text-truncate" style="font-size: 0.84rem;" th:text="${p.displayName}">John Doe</span>
+                                            <span class="fw-semibold text-dark text-truncate" style="font-size: 0.84rem;" th:text="${p.displayName}">John Doe</span>
                                             <span th:if="${p.id == currentPersona.id}" class="badge bg-primary" style="font-size: 0.62rem;">ACTIVE</span>
                                         </div>
                                         <div class="text-secondary text-truncate" style="font-size: 0.72rem;" th:text="${p.role.displayName}">Tenant</div>
@@ -109,14 +109,22 @@
                                     </div>
                                 </a>
                             </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item rounded-2 py-2 px-2 d-flex align-items-center gap-2 text-danger" th:href="@{/logout}">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Log Out</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
-                    <!-- Notification Bell Dropdown -->
-                    <div class="dropdown notification-dropdown" id="notificationDropdownContainer">
-                        <button class="btn btn-outline-secondary btn-sm position-relative d-flex align-items-center justify-content-center p-2 rounded-2"
-                                type="button" id="notificationBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notification Center">
-                            <i class="bi bi-bell-fill fs-6 text-white"></i>
+                    <!-- Notification Bell Dropdown (When Authenticated) -->
+                    <div class="dropdown notification-dropdown" id="notificationDropdownContainer" th:if="${isAuthenticated}">
+                        <button class="btn btn-outline-secondary btn-sm position-relative d-flex align-items-center justify-content-center p-2 rounded-2 notification-bell-btn"
+                                type="button" id="notificationBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notification Center"
+                                style="border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.04);">
+                            <i class="bi bi-bell-fill fs-6" style="color: #fafafa;"></i>
                             <span th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"
                                   class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark"
                                   style="font-size: 0.65rem;"
@@ -126,42 +134,61 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-end shadow-lg notification-menu p-0"
                              aria-labelledby="notificationBellBtn"
-                             style="min-width: 330px; max-width: 380px; background-color: var(--bg-surface-elevated, #1e293b); border: 1px solid var(--border-default, #334155);">
-                            <div class="d-flex align-items-center justify-content-between p-3 border-bottom" style="border-color: var(--border-subtle, #334155) !important;">
+                             style="min-width: 350px; max-width: 400px; background: #141416; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; box-shadow: 0 16px 36px rgba(0,0,0,0.7);">
+                            <div class="d-flex align-items-center justify-content-between p-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
                                 <div class="d-flex align-items-center gap-2">
                                     <i class="bi bi-bell text-primary"></i>
-                                    <span class="fw-bold text-white small">Notifications</span>
+                                    <span class="fw-bold small" style="color: #fafafa;">Notifications</span>
+                                    <span th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"
+                                          class="badge bg-primary rounded-pill" style="font-size: 0.65rem;"
+                                          th:text="${unreadNotificationCount + ' new'}">1 new</span>
                                 </div>
                                 <form th:action="@{/notifications/mark-all-read}" method="post" class="m-0 p-0">
-                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-muted" style="font-size: 0.72rem;">
+                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0" style="font-size: 0.72rem; color: #a78bfa;">
                                         Mark all read
                                     </button>
                                 </form>
                             </div>
                             <div class="notification-list p-2" style="max-height: 360px; overflow-y: auto;">
-                                <div th:if="${recentNotifications == null or recentNotifications.empty}" class="p-3 text-center text-muted small">
-                                    <i class="bi bi-check2-all d-block fs-4 text-secondary mb-1"></i>
-                                    No new notifications
+                                <div th:if="${recentNotifications == null or recentNotifications.empty}" class="p-4 text-center text-muted small">
+                                    <i class="bi bi-bell-slash d-block fs-3 mb-2 opacity-50" style="color: #71717a;"></i>
+                                    <span style="color: #a1a1aa;">No notifications for your current role</span>
                                 </div>
                                 <div th:each="n : ${recentNotifications}" class="p-2 rounded-2 mb-1 notification-item"
-                                     th:style="${n.isRead ? 'opacity: 0.7;' : 'background-color: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8;'}">
-                                    <div class="d-flex align-items-start justify-content-between gap-2">
-                                        <div class="flex-grow-1">
-                                            <a th:href="@{${n.linkUrl}}" class="text-decoration-none d-block">
-                                                <div class="fw-semibold text-white small" th:text="${n.title}">Notification Title</div>
-                                                <div class="text-secondary" style="font-size: 0.75rem;" th:text="${n.message}">Details text</div>
-                                            </a>
-                                            <div class="text-muted mt-1" style="font-size: 0.65rem;" th:text="${#temporals.format(n.createdAt, 'MMM dd, HH:mm')}">Just now</div>
+                                     th:style="${n.isRead ? 'background: rgba(255,255,255,0.02); opacity: 0.7;' : 'background: rgba(124, 58, 237, 0.12); border-left: 3px solid #8b5cf6;'}">
+                                    <a th:href="@{'/notifications/' + ${n.id} + '/open'}" class="text-decoration-none d-block">
+                                        <div class="d-flex align-items-start justify-content-between gap-2">
+                                            <div class="fw-semibold small" style="color: #fafafa;" th:text="${n.title}">Notification Title</div>
+                                            <span th:unless="${n.isRead}" class="badge bg-primary" style="font-size: 0.55rem; padding: 2px 6px;">NEW</span>
                                         </div>
-                                    </div>
+                                        <div class="mt-1" style="font-size: 0.75rem; color: #a1a1aa !important;" th:text="${n.message}">Details text</div>
+                                        <div class="mt-1" style="font-size: 0.65rem; color: #71717a !important;" th:text="${#temporals.format(n.createdAt, 'MMM dd, HH:mm')}">Just now</div>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <a th:href="@{/submit-request}" class="btn btn-primary btn-sm" id="nav-cta-new-request">
+                    <a th:if="${isAuthenticated and isTenant}" th:href="@{/submit-request}" class="btn btn-primary btn-sm" id="nav-cta-new-request">
                         <span>New Request</span>
                     </a>
+                    <a th:if="${isAuthenticated and canReview}" th:href="@{/reviewer-queue}" class="btn btn-primary btn-sm" id="nav-cta-new-request">
+                        <span>Open Queue</span>
+                    </a>
+
+                    <!-- User Account: Logout when authenticated, Login when not authenticated -->
+                    <div th:if="${isAuthenticated}" class="d-flex align-items-center gap-1">
+                        <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" id="nav-logout-btn" title="Sign Out of LeaseFlow">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="d-none d-md-inline">Logout</span>
+                        </a>
+                    </div>
+                    <div th:unless="${isAuthenticated}" class="d-flex align-items-center gap-1">
+                        <a th:href="@{/login}" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="nav-login-btn" title="Sign In to LeaseFlow">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            <span>Login</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -170,30 +197,34 @@
     <!-- ========================================================================
      3. Reusable Alerts / Flash Messages Fragment
      ======================================================================== -->
-    <div th:fragment="alerts" class="alerts-container">
+    <div th:fragment="alerts" class="alerts-container container container-xl my-3">
         <!-- Success Banner -->
-        <div th:if="${successMessage != null}" class="alert alert-success" role="alert">
-            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <div class="alert-content">
-                <span th:text="${successMessage}">Operation completed successfully.</span>
+        <div th:if="${successMessage != null}" class="alert alert-success shadow-sm rounded-3 d-flex align-items-center justify-content-between p-3"
+             style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #6ee7b7;" role="alert">
+            <div class="d-flex align-items-center">
+                <svg class="alert-icon me-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span class="small fw-semibold" th:text="${successMessage}">Operation completed successfully.</span>
             </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem;"></button>
         </div>
 
         <!-- Error Banner -->
-        <div th:if="${errorMessage != null}" class="alert alert-danger" role="alert">
-            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <div class="alert-content">
-                <span th:text="${errorMessage}">An error occurred during processing.</span>
+        <div th:if="${errorMessage != null}" class="alert alert-danger shadow-sm rounded-3 d-flex align-items-center justify-content-between p-3"
+             style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5;" role="alert">
+            <div class="d-flex align-items-center">
+                <svg class="alert-icon me-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span class="small fw-semibold" th:text="${errorMessage}">An error occurred during processing.</span>
             </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.75rem;"></button>
         </div>
     </div>
 

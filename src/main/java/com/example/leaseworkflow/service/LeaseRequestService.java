@@ -163,7 +163,7 @@ public class LeaseRequestService {
             ));
         }
 
-        dispatchNotification("LEGAL", "New Lease Request #" + savedRequest.getId(),
+        dispatchNotification("LEGAL_REVIEWER", "New Lease Request #" + savedRequest.getId(),
                 "New lease submission from " + requesterId + " (" + leaseType + ").",
                 "/track-request/" + savedRequest.getId(), "INFO");
 
@@ -245,7 +245,7 @@ public class LeaseRequestService {
         // US9 Audit Trail: Record resubmission status transition
         statusHistoryRepository.save(new StatusHistory(id, oldStatus, LeaseRequest.STATUS_SUBMITTED, saved.getRequesterId()));
 
-        dispatchNotification("LEGAL", "Request #" + id + " Resubmitted", "Tenant resubmitted updated lease documents.", "/track-request/" + id, "INFO");
+        dispatchNotification("LEGAL_REVIEWER", "Request #" + id + " Resubmitted", "Tenant resubmitted updated lease documents.", "/track-request/" + id, "INFO");
 
         return buildResponseDto(saved, documentDtos);
     }
@@ -299,7 +299,7 @@ public class LeaseRequestService {
         reviewActionRepository.save(new ReviewAction(requestId, reviewer, "LEGAL_APPROVE", commentText));
         statusHistoryRepository.save(new StatusHistory(requestId, oldStatus, LeaseRequest.STATUS_LEGAL_APPROVED, reviewer));
 
-        dispatchNotification("FINANCE", "Legal Cleared: Request #" + requestId, "Legal compliance approved by " + reviewer + ". Ready for Finance.", "/track-request/" + requestId, "INFO");
+        dispatchNotification("FINANCE_MANAGER", "Legal Cleared: Request #" + requestId, "Legal compliance approved by " + reviewer + ". Ready for Finance.", "/track-request/" + requestId, "INFO");
 
         return buildResponseDto(saved);
     }

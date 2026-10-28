@@ -24,7 +24,16 @@ public class HomeController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(jakarta.servlet.http.HttpSession session, Model model) {
+        // If not logged in, enforce real-web authentication gate
+        boolean isLoggedIn = session != null && Boolean.TRUE.equals(session.getAttribute("USER_LOGGED_IN"));
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean isSpringAuth = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal());
+
+        if (!isLoggedIn && !isSpringAuth) {
+            return "redirect:/login?redirectUrl=/dashboard";
+        }
+
         model.addAttribute("appVersion", appVersion);
         model.addAttribute("stats", dashboardService.getDashboardStats());
         return "dashboard";
