@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home — Lease Approval Workflow</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/theme-luxury.css}">
 </head>
 <body class="app-body">
 
@@ -15,37 +18,76 @@
     <div th:replace="~{fragments/layout :: alerts}"></div>
 
     <main id="main-content">
-        <!-- Hero Section -->
-        <section class="hero-section" aria-labelledby="hero-title">
-            <div class="container container-xl">
+        <!-- ===== HERO SECTION ===== -->
+        <section class="hero-section" aria-labelledby="hero-title" style="position: relative;">
+            <!-- Grid Pattern Overlay -->
+            <div class="grid-pattern"></div>
+
+            <!-- Glow Orbs -->
+            <div class="glow-orb" style="width: 400px; height: 400px; background: rgba(124, 58, 237, 0.15); top: -100px; left: 10%;"></div>
+            <div class="glow-orb" style="width: 300px; height: 300px; background: rgba(6, 182, 212, 0.1); bottom: -50px; right: 15%;"></div>
+
+            <div class="container container-xl" style="position: relative; z-index: 2;">
                 <div class="hero-grid">
                     <div class="hero-content">
-                        <div class="hero-badge">
-                            <span class="status-dot"></span>
-                            <span>Enterprise Workflow</span>
+                        <div class="hero-badge animate-fade-in">
+                            <span class="status-dot" style="background: #34d399; box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);"></span>
+                            <span>Enterprise Workflow Platform</span>
                         </div>
-                        <h1 id="hero-title" class="hero-title">Automated Lease Document Approval Workflow</h1>
-                        <p class="hero-subtitle">
-                            Submit lease requests, automatically validate supporting documents, and track multi-stage reviewer approvals with end-to-end transparency.
+                        <h1 id="hero-title" class="hero-title animate-fade-in" style="animation-delay: 100ms;">
+                            Intelligent Lease<br>
+                            <span style="background: linear-gradient(135deg, #a78bfa, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Document Approval</span>
+                        </h1>
+                        <p class="hero-subtitle animate-fade-in" style="animation-delay: 200ms;">
+                            Multi-stage review pipeline with role-based access control, real-time document intelligence, and complete audit trail transparency.
                         </p>
-                        <div class="hero-cta-group" style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
-                            <a th:href="@{/submit-request}" class="btn btn-primary btn-lg" id="landing-cta-submit">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <div class="hero-cta-group animate-fade-in" style="display: flex; gap: var(--space-3); flex-wrap: wrap; animation-delay: 300ms;">
+                            <!-- Dashboard -->
+                            <a th:href="@{/dashboard}" class="btn btn-primary btn-lg" id="landing-cta-dashboard">
+                                <i class="bi bi-speedometer2 me-1"></i>
+                                <span>Open Dashboard</span>
+                            </a>
+
+                            <!-- Submit Request -->
+                            <a th:href="@{/submit-request}" class="btn btn-secondary btn-lg" id="landing-cta-submit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M12 5v14M5 12h14"></path>
                                 </svg>
                                 <span>Submit a Lease Request</span>
                             </a>
-                            <a th:href="@{/dashboard}" class="btn btn-secondary btn-lg" id="landing-cta-dashboard">
-                                <span>Operations Dashboard</span>
+
+                            <!-- Reviewer Queue -->
+                            <a th:href="@{/reviewer-queue}" class="btn btn-outline-light btn-lg" id="landing-cta-queue">
+                                <i class="bi bi-inbox me-1"></i>
+                                <span>Review Queue</span>
                             </a>
-                            <a th:href="@{/reviewer-queue}" class="btn btn-outline btn-lg" id="landing-cta-queue">
-                                <span>Reviewer Queue</span>
+
+                            <!-- Sign In CTA for Guest Users -->
+                            <a th:unless="${isAuthenticated}" th:href="@{/login}" class="btn btn-outline-info btn-lg" id="landing-cta-login">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>
+                                <span>Sign In &rarr;</span>
                             </a>
+                        </div>
+
+                        <!-- Trust indicators -->
+                        <div class="animate-fade-in" style="display: flex; align-items: center; gap: 1.5rem; margin-top: 2rem; animation-delay: 400ms;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.4);">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                <span>Role-Based Access</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.4);">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                <span>Full Audit Trail</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.4);">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                <span>CI/CD Deployed</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Workflow Preview Composition -->
-                    <div class="hero-preview" aria-hidden="true">
+                    <!-- Workflow Preview Card -->
+                    <div class="hero-preview animate-fade-in" aria-hidden="true" style="animation-delay: 400ms;">
                         <div class="preview-window">
                             <div class="preview-window-bar">
                                 <span class="preview-window-dot dot-red"></span>
@@ -65,26 +107,21 @@
                                     </span>
                                 </div>
                                 <div class="preview-progress-steps">
-                                    <span class="preview-step-pill completed">&#10003; 1. Submitted</span>
-                                    <span class="preview-step-pill completed">&#10003; 2. Validated</span>
-                                    <span class="preview-step-pill active">&bull; 3. In Review</span>
-                                    <span class="preview-step-pill upcoming">4. Decision</span>
+                                    <span class="preview-step-pill completed">&#10003; Submitted</span>
+                                    <span class="preview-step-pill completed">&#10003; Validated</span>
+                                    <span class="preview-step-pill active">&bull; Legal Review</span>
+                                    <span class="preview-step-pill upcoming">Finance</span>
                                 </div>
                                 <div class="preview-doc-card">
                                     <div class="preview-doc-name">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-400); flex-shrink: 0;">
-                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                            <polyline points="14 2 14 8 20 8"></polyline>
-                                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                                        </svg>
-                                        <span>Commercial_Lease_Agreement.pdf</span>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #a78bfa; flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <span style="color: var(--text-primary); font-size: 0.85rem;">Commercial_Lease.pdf</span>
                                     </div>
-                                    <span class="preview-doc-valid">&#10003; PDF Valid &bull; 2.4 MB</span>
+                                    <span class="preview-doc-valid">&#10003; Valid &bull; 2.4 MB</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-xs); color: var(--text-muted); padding-top: var(--space-2); border-top: 1px solid var(--border-subtle);">
-                                    <span>Requester: Apex Industrial Corp</span>
-                                    <span>Action: Pending Reviewer Approval</span>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.04);">
+                                    <span>Apex Industrial Corp</span>
+                                    <span style="color: #a78bfa;">Pending Legal Approval</span>
                                 </div>
                             </div>
                         </div>
@@ -93,119 +130,188 @@
             </div>
         </section>
 
-        <!-- How It Works Section -->
+        <!-- ===== STATS MARQUEE ===== -->
+        <section style="background: rgba(124, 58, 237, 0.04); border-bottom: 1px solid rgba(255,255,255,0.04); padding: 2rem 0;">
+            <div class="container container-xl">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center;">
+                    <div>
+                        <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">4-Stage</div>
+                        <div style="font-size: 0.8rem; color: #71717a; margin-top: 4px;">Review Pipeline</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #34d399, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">RBAC</div>
+                        <div style="font-size: 0.8rem; color: #71717a; margin-top: 4px;">Role-Based Access</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #fb923c, #f43f5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Real-Time</div>
+                        <div style="font-size: 0.8rem; color: #71717a; margin-top: 4px;">Status Tracking</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">100%</div>
+                        <div style="font-size: 0.8rem; color: #71717a; margin-top: 4px;">Audit Trail Coverage</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== HOW IT WORKS ===== -->
         <section class="section-wrapper" aria-labelledby="how-it-works-title">
             <div class="container container-xl">
                 <div class="section-header">
                     <span class="section-tag">Lifecycle Overview</span>
                     <h2 id="how-it-works-title" class="section-title">How It Works</h2>
                     <p class="section-subtitle">
-                        A structured three-step lifecycle ensuring complete document integrity, automated validation checks, and organized reviewer operations.
+                        A structured multi-stage pipeline ensuring document integrity, automated validation, and organized multi-role reviewer operations.
                     </p>
                 </div>
-                <div class="steps-grid">
-                    <div class="step-card">
+                <div class="steps-grid stagger-children">
+                    <div class="step-card animate-fade-in">
                         <div class="step-number-badge">1</div>
                         <h3 class="step-card-title">Submit</h3>
                         <p class="step-card-desc">
-                            Requesters submit lease request details along with supporting lease documentation through the standardized submission form.
+                            Tenants submit lease request details with supporting documentation through the secure submission pipeline.
                         </p>
+                        <div style="margin-top: auto; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.04);">
+                            <span style="font-size: 0.72rem; color: #a78bfa; font-weight: 600;">Tenant Role &rarr;</span>
+                        </div>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card animate-fade-in">
                         <div class="step-number-badge">2</div>
-                        <h3 class="step-card-title">Validate</h3>
+                        <h3 class="step-card-title">Validate & Review</h3>
                         <p class="step-card-desc">
-                            The application validates submitted documents, verifying file extension compatibility and enforcing upload size boundaries.
+                            Documents are automatically validated. Legal officers then review agreements for regulatory compliance.
                         </p>
+                        <div style="margin-top: auto; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.04);">
+                            <span style="font-size: 0.72rem; color: #06b6d4; font-weight: 600;">Legal Officer &rarr;</span>
+                        </div>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card animate-fade-in">
                         <div class="step-number-badge">3</div>
                         <h3 class="step-card-title">Review &amp; Track</h3>
                         <p class="step-card-desc">
-                            Reviewers process submissions to approve, reject, or request changes with audit comments, while requesters track status in real time.
+                            Finance managers give final sign-off. Every decision is recorded with full audit trail transparency.
                         </p>
+                        <div style="margin-top: auto; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.04);">
+                            <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">Finance Manager &rarr;</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Feature Grid Section -->
+        <!-- ===== FEATURES GRID ===== -->
         <section class="section-wrapper" aria-labelledby="features-title">
             <div class="container container-xl">
                 <div class="section-header">
-                    <span class="section-tag">Core Capabilities</span>
-                    <h2 id="features-title" class="section-title">Operational Features</h2>
+                    <span class="section-tag">Operational Features</span>
+                    <h2 id="features-title" class="section-title">Built for Enterprise Workflows</h2>
                     <p class="section-subtitle">
-                        Reliable tooling to manage the lease document approval lifecycle without manual overhead.
+                        Every feature designed to eliminate manual overhead and bring institutional-grade compliance to lease document management.
                     </p>
                 </div>
-                <div class="features-grid">
-                    <!-- Feature 1: Document Validation -->
-                    <div class="feature-card">
+                <div class="features-grid stagger-children">
+                    <!-- Feature 1 -->
+                    <div class="feature-card animate-fade-in">
                         <div class="feature-icon-box" aria-hidden="true">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <path d="m9 15 2 2 4-4"></path>
-                            </svg>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
                         </div>
                         <div class="feature-content">
                             <h3 class="feature-card-title">Document Validation</h3>
-                            <p class="feature-card-desc">
-                                Automatically validates uploaded lease documents against supported file extensions (PDF, DOCX) and size limits upon submission.
-                            </p>
+                            <p class="feature-card-desc">Automatically validates uploaded lease documents against file type, size constraints, and integrity checks on submission.</p>
                         </div>
                     </div>
-
-                    <!-- Feature 2: Review Workflow & Audit Trail -->
-                    <div class="feature-card">
-                        <div class="feature-icon-box" aria-hidden="true">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                                <path d="m9 16 2 2 4-4"></path>
-                            </svg>
+                    <!-- Feature 2 -->
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon-box" aria-hidden="true" style="background: rgba(6, 182, 212, 0.1) !important; border-color: rgba(6, 182, 212, 0.2) !important; color: #06b6d4 !important;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </div>
                         <div class="feature-content">
                             <h3 class="feature-card-title">Review Workflow and Audit Trail</h3>
-                            <p class="feature-card-desc">
-                                Reviewers evaluate pending items to approve, reject, or request revisions with recorded comments tracking every decision.
-                            </p>
+                            <p class="feature-card-desc">Tenant, Legal Officer, Finance Manager, and Admin — each role with tailored permissions and workflow access.</p>
                         </div>
                     </div>
-
-                    <!-- Feature 3: Request Status Tracking -->
-                    <div class="feature-card">
-                        <div class="feature-icon-box" aria-hidden="true">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                            </svg>
+                    <!-- Feature 3 -->
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon-box" aria-hidden="true" style="background: rgba(52, 211, 153, 0.1) !important; border-color: rgba(52, 211, 153, 0.2) !important; color: #34d399 !important;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                         </div>
                         <div class="feature-content">
                             <h3 class="feature-card-title">Request Status Tracking</h3>
-                            <p class="feature-card-desc">
-                                Provides transparency across the full lifecycle from SUBMITTED to UNDER_REVIEW, APPROVED, REJECTED, or CHANGES_REQUESTED.
-                            </p>
+                            <p class="feature-card-desc">Monitor request lifecycle across all stages — from submission through legal review, finance audit, to final sign-off.</p>
                         </div>
                     </div>
-
-                    <!-- Feature 4: Controlled Document Handling -->
-                    <div class="feature-card">
-                        <div class="feature-icon-box" aria-hidden="true">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                                <line x1="12" y1="11" x2="12" y2="17"></line>
-                                <line x1="9" y1="14" x2="15" y2="14"></line>
-                            </svg>
+                    <!-- Feature 4 -->
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon-box" aria-hidden="true" style="background: rgba(251, 113, 133, 0.1) !important; border-color: rgba(251, 113, 133, 0.2) !important; color: #fb7185 !important;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         </div>
                         <div class="feature-content">
                             <h3 class="feature-card-title">Controlled Document Handling</h3>
-                            <p class="feature-card-desc">
-                                Stores submitted files in designated server directories with controlled access endpoints, preventing direct uncontrolled file exposure.
-                            </p>
+                            <p class="feature-card-desc">Files stored in controlled server directories with SHA-256 integrity verification and restricted access endpoints.</p>
                         </div>
+                    </div>
+                    <!-- Feature 5 -->
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon-box" aria-hidden="true" style="background: rgba(251, 191, 36, 0.1) !important; border-color: rgba(251, 191, 36, 0.2) !important; color: #fbbf24 !important;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-card-title">Audit Trail & Comments</h3>
+                            <p class="feature-card-desc">Every approval, rejection, and revision request is recorded with timestamped reviewer comments for compliance.</p>
+                        </div>
+                    </div>
+                    <!-- Feature 6 -->
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon-box" aria-hidden="true" style="background: rgba(168, 85, 247, 0.1) !important; border-color: rgba(168, 85, 247, 0.2) !important; color: #a855f7 !important;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-card-title">CSV Export & Certificates</h3>
+                            <p class="feature-card-desc">Export full request data as CSV reports and generate printable approval certificates for finalized agreements.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== TECH STACK / DEPLOYMENT SECTION ===== -->
+        <section class="section-wrapper" style="border-top: 1px solid rgba(255,255,255,0.04);">
+            <div class="container container-xl">
+                <div class="section-header">
+                    <span class="section-tag">Technology</span>
+                    <h2 class="section-title">Enterprise-Grade Stack</h2>
+                    <p class="section-subtitle">Built with production-ready technologies, deployed via CI/CD pipeline.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div class="card" style="padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">&#9881;</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #fafafa;">Spring Boot 3</div>
+                        <div style="font-size: 0.78rem; color: #71717a; margin-top: 4px;">Backend Framework</div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">&#128011;</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #fafafa;">Docker</div>
+                        <div style="font-size: 0.78rem; color: #71717a; margin-top: 4px;">Containerization</div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">&#128736;</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #fafafa;">Jenkins CI/CD</div>
+                        <div style="font-size: 0.78rem; color: #71717a; margin-top: 4px;">Pipeline Automation</div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">&#128274;</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #fafafa;">Spring Security</div>
+                        <div style="font-size: 0.78rem; color: #71717a; margin-top: 4px;">Auth & RBAC</div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">&#128451;</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #fafafa;">MySQL</div>
+                        <div style="font-size: 0.78rem; color: #71717a; margin-top: 4px;">Persistent Storage</div>
+                    </div>
+                    <div class="card" style="padding: 1.5rem; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">&#128640;</div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: #fafafa;">Ansible</div>
+                        <div style="font-size: 0.78rem; color: #71717a; margin-top: 4px;">Deployment Automation</div>
                     </div>
                 </div>
             </div>

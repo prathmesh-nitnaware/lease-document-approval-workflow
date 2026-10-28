@@ -49,23 +49,23 @@ public class UiScreenshotCaptureTest extends BaseSeleniumTest {
 
         String baseUrl = getBaseUrl();
 
-        // 1. Landing
+        // 1. Landing Page
         capturePage(baseUrl + "/", "landing");
 
-        // 2. Dashboard
-        capturePage(baseUrl + "/dashboard", "dashboard");
+        // 2. Login Page
+        capturePage(baseUrl + "/login", "login");
 
-        // 3. Submit
-        capturePage(baseUrl + "/submit-request", "submit");
+        // 3. Dashboard (as Sarah Jenkins, Legal Reviewer)
+        capturePage(baseUrl + "/quick-login?personaId=sarah.legal&redirectUrl=/dashboard", "dashboard");
 
-        // 4. Reviewer Queue
-        capturePage(baseUrl + "/reviewer-queue", "reviewer-queue");
+        // 4. Submit Request (as John Doe, Tenant)
+        capturePage(baseUrl + "/quick-login?personaId=john.tenant&redirectUrl=/submit-request", "submit");
 
-        // 5. Track Request
+        // 5. Reviewer Queue (as Sarah Jenkins, Legal Reviewer)
+        capturePage(baseUrl + "/quick-login?personaId=sarah.legal&redirectUrl=/reviewer-queue", "reviewer-queue");
+
+        // 6. Track Request Details
         capturePage(baseUrl + "/track-request/" + sample.getId(), "track-request");
-
-        // 6. Login-less Error Page
-        capturePage(baseUrl + "/error-sample-not-found", "error");
     }
 
     private void capturePage(String url, String name) throws IOException, InterruptedException {

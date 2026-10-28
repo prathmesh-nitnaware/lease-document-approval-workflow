@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="stylesheet" th:href="@{/css/theme-luxury.css}">
 </head>
 <body class="app-body">
 
@@ -18,88 +19,100 @@
 
     <main id="main-content" class="container container-xl" style="padding-top: var(--space-8); padding-bottom: var(--space-12);">
         <!-- Dashboard Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; gap: var(--space-4);">
+        <div class="animate-fade-in" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; gap: var(--space-4);">
             <div>
-                <span style="font-size: var(--font-xs); font-weight: var(--font-weight-bold); color: var(--primary-400); text-transform: uppercase; letter-spacing: 0.08em;">Workflow Overview</span>
-                <h1 style="font-size: var(--font-3xl); font-weight: 800; color: #ffffff; margin-top: 4px;">Operations Dashboard</h1>
-                <p style="font-size: var(--font-sm); color: var(--text-muted); margin-top: 4px;">Real-time metrics, submission velocity, and lifecycle audit feed.</p>
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 3px 12px; border-radius: 9999px; background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.2); color: #a78bfa; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">
+                    <span class="status-dot" style="background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.5);"></span>
+                    Live Overview
+                </div>
+                <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em;">Operations Dashboard</h1>
+                <p style="font-size: var(--font-sm); color: #71717a; margin-top: 4px;">Real-time metrics, submission velocity, and lifecycle audit feed.</p>
             </div>
             <div style="display: flex; gap: var(--space-3);">
-                <a th:href="@{/submit-request}" class="btn btn-primary" id="dashboard-cta-submit">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
+                <a th:if="${isTenant}" th:href="@{/submit-request}" class="btn btn-primary" id="dashboard-cta-submit">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     <span>Submit Request</span>
                 </a>
-                <a th:href="@{/reviewer-queue}" class="btn btn-secondary" id="dashboard-cta-queue">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                    </svg>
+                <a th:if="${canReview}" th:href="@{/reviewer-queue}" class="btn btn-secondary" id="dashboard-cta-queue">
+                    <i class="bi bi-inbox"></i>
                     <span>Review Queue</span>
                 </a>
             </div>
         </div>
 
         <!-- 6 Core KPI Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-8);">
+        <div class="stagger-children" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-8);">
             <!-- Total -->
-            <div class="card" style="padding: var(--space-5);">
-                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Total Requests</div>
-                <div style="font-size: var(--font-3xl); font-weight: 800; color: #ffffff; margin: 8px 0 4px;"><span id="kpi-total" th:text="${stats != null ? stats.total : 0}">0</span></div>
-                <div style="font-size: var(--font-xs); color: var(--primary-300);">All submissions</div>
+            <div class="card animate-fade-in" style="padding: 0; overflow: hidden;">
+                <div style="height: 3px; background: linear-gradient(90deg, #7c3aed, #a78bfa);"></div>
+                <div style="padding: 1.25rem;">
+                    <div style="font-size: 0.72rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Total Requests</div>
+                    <div style="font-size: 2rem; font-weight: 800; margin: 6px 0 4px; background: linear-gradient(135deg, #fafafa, #a1a1aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" class="stat-number"><span id="kpi-total" th:text="${stats != null ? stats.total : 0}">0</span></div>
+                    <div style="font-size: 0.72rem; color: #a78bfa; font-weight: 500;">All submissions</div>
+                </div>
             </div>
             <!-- Pending -->
-            <div class="card" style="padding: var(--space-5);">
-                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Pending Review</div>
-                <div style="font-size: var(--font-3xl); font-weight: 800; color: #60a5fa; margin: 8px 0 4px;"><span id="kpi-pending" th:text="${stats != null ? stats.pending : 0}">0</span></div>
-                <div style="font-size: var(--font-xs); color: var(--text-muted);">Submitted / Under Review</div>
+            <div class="card animate-fade-in" style="padding: 0; overflow: hidden;">
+                <div style="height: 3px; background: linear-gradient(90deg, #818cf8, #6366f1);"></div>
+                <div style="padding: 1.25rem;">
+                    <div style="font-size: 0.72rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Pending Review</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #818cf8; margin: 6px 0 4px;" class="stat-number"><span id="kpi-pending" th:text="${stats != null ? stats.pending : 0}">0</span></div>
+                    <div style="font-size: 0.72rem; color: #71717a;">Submitted / Under Review</div>
+                </div>
             </div>
             <!-- Approved -->
-            <div class="card" style="padding: var(--space-5);">
-                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Approved</div>
-                <div style="font-size: var(--font-3xl); font-weight: 800; color: #34d399; margin: 8px 0 4px;"><span id="kpi-approved" th:text="${stats != null ? stats.approved : 0}">0</span></div>
-                <div style="font-size: var(--font-xs); color: var(--text-muted);">Completed agreements</div>
+            <div class="card animate-fade-in" style="padding: 0; overflow: hidden;">
+                <div style="height: 3px; background: linear-gradient(90deg, #34d399, #10b981);"></div>
+                <div style="padding: 1.25rem;">
+                    <div style="font-size: 0.72rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Approved</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #34d399; margin: 6px 0 4px;" class="stat-number"><span id="kpi-approved" th:text="${stats != null ? stats.approved : 0}">0</span></div>
+                    <div style="font-size: 0.72rem; color: #71717a;">Completed agreements</div>
+                </div>
             </div>
             <!-- Rejected -->
-            <div class="card" style="padding: var(--space-5);">
-                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Rejected</div>
-                <div style="font-size: var(--font-3xl); font-weight: 800; color: #f87171; margin: 8px 0 4px;"><span id="kpi-rejected" th:text="${stats != null ? stats.rejected : 0}">0</span></div>
-                <div style="font-size: var(--font-xs); color: var(--text-muted);">Closed with reason</div>
+            <div class="card animate-fade-in" style="padding: 0; overflow: hidden;">
+                <div style="height: 3px; background: linear-gradient(90deg, #fb7185, #ef4444);"></div>
+                <div style="padding: 1.25rem;">
+                    <div style="font-size: 0.72rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Rejected</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #fb7185; margin: 6px 0 4px;" class="stat-number"><span id="kpi-rejected" th:text="${stats != null ? stats.rejected : 0}">0</span></div>
+                    <div style="font-size: 0.72rem; color: #71717a;">Closed with reason</div>
+                </div>
             </div>
-            <!-- Changes Requested -->
-            <div class="card" style="padding: var(--space-5);">
-                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Changes Needed</div>
-                <div style="font-size: var(--font-3xl); font-weight: 800; color: #fbbf24; margin: 8px 0 4px;"><span id="kpi-changes" th:text="${stats != null ? stats.changes : 0}">0</span></div>
-                <div style="font-size: var(--font-xs); color: var(--text-muted);">Awaiting resubmission</div>
+            <!-- Changes -->
+            <div class="card animate-fade-in" style="padding: 0; overflow: hidden;">
+                <div style="height: 3px; background: linear-gradient(90deg, #fb923c, #f59e0b);"></div>
+                <div style="padding: 1.25rem;">
+                    <div style="font-size: 0.72rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Changes Needed</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #fb923c; margin: 6px 0 4px;" class="stat-number"><span id="kpi-changes" th:text="${stats != null ? stats.changes : 0}">0</span></div>
+                    <div style="font-size: 0.72rem; color: #71717a;">Awaiting resubmission</div>
+                </div>
             </div>
-            <!-- Approval Rate -->
-            <div class="card" style="padding: var(--space-5);">
-                <div style="font-size: var(--font-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Approval Rate</div>
-                <div style="font-size: var(--font-3xl); font-weight: 800; color: #a78bfa; margin: 8px 0 4px;"><span id="kpi-rate" th:text="${stats != null ? #numbers.formatDecimal(stats.approvalRate, 1, 1) + '%' : '0.0%'}">0.0%</span></div>
-                <div style="font-size: var(--font-xs); color: var(--text-muted);">Throughput efficiency</div>
+            <!-- Rate -->
+            <div class="card animate-fade-in" style="padding: 0; overflow: hidden;">
+                <div style="height: 3px; background: linear-gradient(90deg, #c084fc, #a78bfa);"></div>
+                <div style="padding: 1.25rem;">
+                    <div style="font-size: 0.72rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Approval Rate</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #c084fc; margin: 6px 0 4px;" class="stat-number"><span id="kpi-rate" th:text="${stats != null ? #numbers.formatDecimal(stats.approvalRate, 1, 1) + '%' : '0.0%'}">0.0%</span></div>
+                    <div style="font-size: 0.72rem; color: #71717a;">Throughput efficiency</div>
+                </div>
             </div>
         </div>
 
-        <!-- Charts Row: Status Doughnut + 7-Day Trend -->
+        <!-- Charts Row -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-8);">
-            <!-- Status Doughnut Chart Card -->
-            <div class="card" style="padding: var(--space-6);">
-                <div class="card-header" style="margin-bottom: var(--space-4);">
-                    <h2 class="card-title" style="font-size: var(--font-lg);">Status Breakdown</h2>
-                    <p class="card-subtitle">Distribution across all lifecycle stages</p>
+            <div class="card animate-fade-in" style="padding: var(--space-6);">
+                <div style="margin-bottom: var(--space-4);">
+                    <h2 style="font-size: var(--font-lg); font-weight: 700;">Status Breakdown</h2>
+                    <p style="font-size: var(--font-sm); color: #71717a;">Distribution across all lifecycle stages</p>
                 </div>
                 <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
                     <canvas id="status-chart"></canvas>
                 </div>
             </div>
-
-            <!-- 7-Day Trend Chart Card -->
-            <div class="card" style="padding: var(--space-6);">
-                <div class="card-header" style="margin-bottom: var(--space-4);">
-                    <h2 class="card-title" style="font-size: var(--font-lg);">7-Day Submission Trend</h2>
-                    <p class="card-subtitle">Volume of requests submitted over the past week</p>
+            <div class="card animate-fade-in" style="padding: var(--space-6); animation-delay: 100ms;">
+                <div style="margin-bottom: var(--space-4);">
+                    <h2 style="font-size: var(--font-lg); font-weight: 700;">7-Day Submission Trend</h2>
+                    <p style="font-size: var(--font-sm); color: #71717a;">Volume of requests over the past week</p>
                 </div>
                 <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
                     <canvas id="trend-chart"></canvas>
@@ -108,36 +121,37 @@
         </div>
 
         <!-- Recent Activity Feed -->
-        <div class="card">
+        <div class="card animate-fade-in">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h2 class="card-title" style="font-size: var(--font-lg);">Recent Activity Feed</h2>
-                    <p class="card-subtitle">Audit trail of latest status transitions from StatusHistory</p>
+                    <h2 style="font-size: var(--font-lg); font-weight: 700;">Recent Activity</h2>
+                    <p style="font-size: var(--font-sm); color: #71717a;">Audit trail of latest status transitions</p>
                 </div>
-                <span class="badge" style="background-color: var(--primary-subtle); color: var(--primary-300); padding: 4px 10px; border-radius: var(--radius-full); font-size: var(--font-xs); font-weight: 600;">Audit Stream</span>
+                <span style="background: rgba(124, 58, 237, 0.1); color: #a78bfa; padding: 4px 12px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid rgba(124, 58, 237, 0.2);">
+                    <i class="bi bi-broadcast me-1"></i>Live
+                </span>
             </div>
             <div class="card-body" style="padding: var(--space-4) var(--space-6);">
                 <div id="activity-feed">
-                    <div th:if="${stats == null or stats.recentActivity == null or #lists.isEmpty(stats.recentActivity)}" id="empty-activity-msg" style="padding: var(--space-8) 0; text-align: center; color: var(--text-muted);">
-                        <div style="font-size: var(--font-2xl); margin-bottom: var(--space-2); opacity: 0.5;">📋</div>
-                        <p style="font-size: var(--font-sm); margin: 0;">No activity recorded yet. Submit a lease request to start tracking.</p>
+                    <div th:if="${stats == null or stats.recentActivity == null or #lists.isEmpty(stats.recentActivity)}" id="empty-activity-msg" style="padding: 3rem 0; text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.3;">📋</div>
+                        <p style="font-size: var(--font-sm); color: #52525b; margin: 0;">No activity recorded yet. Submit a lease request to start tracking.</p>
                     </div>
-
-                    <div th:unless="${stats == null or stats.recentActivity == null or #lists.isEmpty(stats.recentActivity)}" style="display: flex; flex-direction: column; gap: var(--space-3);">
-                        <div th:each="act : ${stats.recentActivity}" class="activity-feed-row" style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); background-color: var(--bg-surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); flex-wrap: wrap; gap: var(--space-2);">
-                            <div style="display: flex; align-items: center; gap: var(--space-3);">
-                                <span style="font-family: var(--font-family-mono); color: var(--primary-300); font-weight: 700; font-size: var(--font-sm);" th:text="'#' + ${act.requestId}">#1</span>
-                                <span style="font-size: var(--font-sm); color: var(--text-primary);">
-                                    Transitioned from
-                                    <span style="color: var(--text-muted); font-weight: 600;" th:text="${act.oldStatus}">SUBMITTED</span>
-                                    &rarr;
-                                    <span style="color: var(--primary-300); font-weight: 700;" th:text="${act.newStatus}">APPROVED</span>
+                    <div th:unless="${stats == null or stats.recentActivity == null or #lists.isEmpty(stats.recentActivity)}" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div th:each="act : ${stats.recentActivity}" style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); flex-wrap: wrap; gap: 0.5rem; transition: background 0.2s ease;"
+                             onmouseover="this.style.background='rgba(124,58,237,0.04)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <span style="font-family: var(--font-family-mono); color: #a78bfa; font-weight: 700; font-size: var(--font-sm);" th:text="'#' + ${act.requestId}">#1</span>
+                                <span style="font-size: var(--font-sm); color: #d4d4d8;">
+                                    <span style="color: #71717a;" th:text="${act.oldStatus}">SUBMITTED</span>
+                                    <span style="color: #52525b; margin: 0 4px;">&rarr;</span>
+                                    <span style="color: #a78bfa; font-weight: 700;" th:text="${act.newStatus}">APPROVED</span>
                                 </span>
                             </div>
-                            <div style="display: flex; align-items: center; gap: var(--space-4); font-size: var(--font-xs); color: var(--text-muted);">
-                                <span>Actor: <strong style="color: var(--text-secondary);" th:text="${act.changedBy}">System</strong></span>
-                                <span th:text="${act.changedAt}">2026-10-12 12:00</span>
-                                <a th:href="@{'/track-request/' + ${act.requestId}}" style="color: var(--primary-400); text-decoration: none; font-weight: 500;">View &rarr;</a>
+                            <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: #52525b;">
+                                <span>by <strong style="color: #a1a1aa;" th:text="${act.changedBy}">System</strong></span>
+                                <span th:text="${act.changedAt}">2026-10-12</span>
+                                <a th:href="@{'/track-request/' + ${act.requestId}}" style="color: #a78bfa; text-decoration: none; font-weight: 600;">View &rarr;</a>
                             </div>
                         </div>
                     </div>
@@ -152,16 +166,13 @@
     <!-- Bundled Scripts -->
     <div th:replace="~{fragments/layout :: scripts}"></div>
 
-    <!-- Chart.js Hydration Script -->
+    <!-- Chart.js Script -->
     <script th:inline="javascript">
         /*<![CDATA[*/
         document.addEventListener('DOMContentLoaded', function () {
-            // Fetch stats or use pre-rendered data
             fetch('/api/dashboard/stats')
                 .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    renderCharts(data);
-                })
+                .then(function(data) { renderCharts(data); })
                 .catch(function(err) {
                     console.warn('Dashboard stats API fallback:', err);
                     var fallbackData = {
@@ -179,8 +190,9 @@
 
             function renderCharts(data) {
                 if (typeof Chart === 'undefined') return;
+                Chart.defaults.color = '#71717a';
+                Chart.defaults.borderColor = 'rgba(255,255,255,0.04)';
 
-                // 1. Status Doughnut Chart
                 var statusCanvas = document.getElementById('status-chart');
                 if (statusCanvas) {
                     var counts = data.statusCounts || {};
@@ -191,42 +203,21 @@
                     var changes = counts.CHANGES_REQUESTED || 0;
                     var total = submitted + underReview + approved + rejected + changes;
 
-                    var chartData = total > 0
-                        ? [submitted, underReview, approved, rejected, changes]
-                        : [1]; // Grey placeholder ring for empty state
+                    var chartData = total > 0 ? [submitted, underReview, approved, rejected, changes] : [1];
                     var chartColors = total > 0
-                        ? ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6']
-                        : ['#334155'];
+                        ? ['#818cf8', '#fbbf24', '#34d399', '#fb7185', '#fb923c']
+                        : ['rgba(255,255,255,0.06)'];
                     var chartLabels = total > 0
-                        ? ['Submitted', 'Under Review', 'Approved', 'Rejected', 'Changes Requested']
-                        : ['No Data Yet'];
+                        ? ['Submitted', 'Under Review', 'Approved', 'Rejected', 'Changes']
+                        : ['No Data'];
 
                     new Chart(statusCanvas, {
                         type: 'doughnut',
-                        data: {
-                            labels: chartLabels,
-                            datasets: [{
-                                data: chartData,
-                                backgroundColor: chartColors,
-                                borderWidth: 0,
-                                hoverOffset: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: { color: '#94a3b8', font: { size: 11 } }
-                                }
-                            },
-                            cutout: '70%'
-                        }
+                        data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 0, hoverOffset: 6 }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#a1a1aa', font: { size: 11, weight: '500', family: 'Inter' }, padding: 16, usePointStyle: true, pointStyleWidth: 8 } } }, cutout: '72%' }
                     });
                 }
 
-                // 2. 7-Day Trend Chart
                 var trendCanvas = document.getElementById('trend-chart');
                 if (trendCanvas) {
                     var trend = data.trend7Days || [];
@@ -240,31 +231,25 @@
                             datasets: [{
                                 label: 'Submissions',
                                 data: values,
-                                borderColor: '#6366f1',
-                                backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                                borderColor: '#7c3aed',
+                                backgroundColor: 'rgba(124, 58, 237, 0.08)',
                                 fill: true,
-                                tension: 0.35,
-                                pointBackgroundColor: '#818cf8',
-                                pointRadius: 4
+                                tension: 0.4,
+                                pointBackgroundColor: '#a78bfa',
+                                pointBorderColor: '#7c3aed',
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                borderWidth: 2
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
                             scales: {
-                                x: {
-                                    grid: { display: false },
-                                    ticks: { color: '#94a3b8', font: { size: 11 } }
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: 'rgba(51, 65, 85, 0.5)' },
-                                    ticks: { color: '#94a3b8', font: { size: 11 }, precision: 0 }
-                                }
+                                x: { grid: { display: false }, ticks: { color: '#52525b', font: { size: 11, family: 'Inter' } } },
+                                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#52525b', font: { size: 11, family: 'Inter' }, precision: 0 } }
                             },
-                            plugins: {
-                                legend: { display: false }
-                            }
+                            plugins: { legend: { display: false } }
                         }
                     });
                 }

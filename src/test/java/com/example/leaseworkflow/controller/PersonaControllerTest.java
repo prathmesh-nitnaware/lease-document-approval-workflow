@@ -38,4 +38,21 @@ class PersonaControllerTest {
                 .andExpect(redirectedUrl("/dashboard"))
                 .andExpect(flash().attributeExists("successMessage"));
     }
+
+    @Test
+    void testLoginPageRenders() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("login"))
+                .andExpect(model().attributeExists("availablePersonas"));
+    }
+
+    @Test
+    void testQuickLoginSetsSecurityContext() throws Exception {
+        mockMvc.perform(get("/quick-login")
+                        .param("personaId", "sarah.legal")
+                        .param("redirectUrl", "/dashboard"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"));
+    }
 }

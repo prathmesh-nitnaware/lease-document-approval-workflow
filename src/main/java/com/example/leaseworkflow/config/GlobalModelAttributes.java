@@ -62,7 +62,26 @@ public class GlobalModelAttributes {
     }
 
     @ModelAttribute("unreadNotificationCount")
-    public long unreadNotificationCount() {
-        return notificationService.getUnreadCount();
+    public long unreadNotificationCount(HttpSession session) {
+        return notificationService.getUnreadCountForPersona(personaService.getCurrentPersona(session));
+    }
+
+    @ModelAttribute("isAuthenticated")
+    public boolean isAuthenticated(HttpSession session) {
+        if (session != null && Boolean.TRUE.equals(session.getAttribute("USER_LOGGED_IN"))) {
+            return true;
+        }
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal());
+    }
+
+    @ModelAttribute("currentUsername")
+    public String currentUsername(HttpSession session) {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            return auth.getName();
+        }
+        UserPersona persona = personaService.getCurrentPersona(session);
+        return persona != null ? persona.getId() : "";
     }
 }

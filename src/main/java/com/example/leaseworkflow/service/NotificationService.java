@@ -28,11 +28,31 @@ public class NotificationService {
             return notificationRepository.findTop20ByOrderByCreatedAtDesc();
         }
         String roleStr = persona.getRole() != null ? persona.getRole().name() : "ALL";
-        return notificationRepository.findByTargetRoleOrTargetRoleOrderByCreatedAtDesc(roleStr, "ALL");
+        List<AppNotification> list = notificationRepository.findByTargetRoleOrTargetRoleOrderByCreatedAtDesc(roleStr, "ALL");
+        if ((list == null || list.isEmpty())) {
+            if ("LEGAL_REVIEWER".equals(roleStr)) {
+                List<AppNotification> fallback = notificationRepository.findByTargetRoleOrTargetRoleOrderByCreatedAtDesc("LEGAL", "ALL");
+                if (fallback != null && !fallback.isEmpty()) {
+                    return fallback;
+                }
+            } else if ("FINANCE_MANAGER".equals(roleStr)) {
+                List<AppNotification> fallback = notificationRepository.findByTargetRoleOrTargetRoleOrderByCreatedAtDesc("FINANCE", "ALL");
+                if (fallback != null && !fallback.isEmpty()) {
+                    return fallback;
+                }
+            }
+        }
+        return list != null ? list : List.of();
     }
 
     public long getUnreadCount() {
         return notificationRepository.countByIsReadFalse();
+    }
+
+    public long getUnreadCountForPersona(UserPersona persona) {
+        return getNotificationsForPersona(persona).stream()
+                .filter(n -> !n.isRead())
+                .count();
     }
 
     @Transactional
@@ -47,10 +67,25 @@ public class NotificationService {
     }
 
     @Transactional
+    public void markAllAsReadForPersona(UserPersona persona) {
+        List<AppNotification> list = getNotificationsForPersona(persona);
+        for (AppNotification n : list) {
+            if (!n.isRead()) {
+                n.setRead(true);
+                notificationRepository.save(n);
+            }
+        }
+    }
+
+    @Transactional
     public void markAsRead(Long id) {
         notificationRepository.findById(id).ifPresent(n -> {
             n.setRead(true);
             notificationRepository.save(n);
         });
+    }
+
+    public java.util.Optional<AppNotification> getNotification(Long id) {
+        return notificationRepository.findById(id);
     }
 }
