@@ -488,3 +488,9 @@ The project enforces the standard **Gitflow Branching Model**:
 - **Author**: Prathmesh Nitnaware
 - **Academic / Course Focus**: Comprehensive DevOps, Continuous Integration, Continuous Delivery, and Site Reliability Engineering Curriculum (Weeks 1–15).
 - **Repository**: [prathmesh-nitnaware/lease-document-approval-workflow](https://github.com/prathmesh-nitnaware/lease-document-approval-workflow)
+
+---
+
+### Thank You!
+Thank you for reviewing and utilizing the Automated Lease Document Approval Workflow platform.
+

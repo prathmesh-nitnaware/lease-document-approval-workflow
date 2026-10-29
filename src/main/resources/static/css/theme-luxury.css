@@ -384,6 +384,15 @@ hr.dropdown-divider { border-color: rgba(255, 255, 255, 0.08) !important; }
   outline: none !important;
 }
 
+select, .form-select {
+  color-scheme: dark !important;
+}
+
+select option, .form-select option {
+  background-color: #18181b !important;
+  color: #fafafa !important;
+}
+
 .form-control::placeholder { color: #52525b !important; }
 
 .form-label {
@@ -816,3 +825,23 @@ hr.dropdown-divider { border-color: rgba(255, 255, 255, 0.08) !important; }
 .rounded-3 { border-radius: 12px !important; }
 .btn-close { filter: invert(1) !important; }
 .btn-close-white { filter: invert(1) !important; }
+
+/* Fix: lease type dropdown option visibility on dark theme */
+select,
+select.form-select {
+    color-scheme: dark !important;
+    background-color: #1e1b2e !important;
+    color: #f9fafb !important;
+}
+
+select option,
+select.form-select option {
+    background-color: #1e1b2e !important;
+    color: #f9fafb !important;
+}
+
+select option:checked,
+select.form-select option:checked {
+    background-color: #7c3aed !important;
+    color: #ffffff !important;
+}

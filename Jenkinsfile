@@ -23,7 +23,7 @@ pipeline {
           set SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/lease_workflow
           set SPRING_DATASOURCE_USERNAME=root
           set SPRING_DATASOURCE_PASSWORD=%DB_PASSWORD%
-          mvn clean package
+          call mvn clean package
         '''
       }
     }
@@ -111,9 +111,15 @@ pipeline {
             %DOCKER_IMAGE%:%IMAGE_TAG%
         '''
         script {
-          sleep(time: 15, unit: 'SECONDS')
+          sleep(time: 25, unit: 'SECONDS')
         }
-        bat 'curl -f http://localhost:%APP_PORT%/actuator/health || curl -f http://localhost:%APP_PORT%/'
+        bat '''
+          curl --retry 10 --retry-delay 3 --retry-all-errors -f http://localhost:%APP_PORT%/actuator/health || (
+            echo [DEPLOY HEALTHCHECK FAILED] Checking container logs:
+            docker logs --tail 50 lease-workflow-container
+            exit 1
+          )
+        '''
       }
     }
   }

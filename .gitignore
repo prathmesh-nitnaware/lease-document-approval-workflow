@@ -43,3 +43,5 @@ id_rsa*
 # Uploads & Document Storage
 uploads/
 Report/
+DevOps_Report/
+scripts/

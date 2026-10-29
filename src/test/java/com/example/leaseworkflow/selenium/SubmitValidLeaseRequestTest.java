@@ -34,7 +34,7 @@ public class SubmitValidLeaseRequestTest extends BaseSeleniumTest {
         requesterInput.sendKeys(uniqueRequester);
 
         Select leaseTypeSelect = new Select(driver.findElement(By.id("leaseType")));
-        leaseTypeSelect.selectByValue("Commercial");
+        leaseTypeSelect.selectByValue("COMMERCIAL");
 
         WebElement fileInput = driver.findElement(By.id("fileInput"));
         fileInput.sendKeys(pdfFile.getAbsolutePath());
@@ -42,7 +42,8 @@ public class SubmitValidLeaseRequestTest extends BaseSeleniumTest {
         WebElement submitBtn = driver.findElement(By.id("submit-btn"));
         submitBtn.click();
 
-        WebElement confirmationSection = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("confirmation-section")));
+        WebElement confirmationSection = wait
+                .until(ExpectedConditions.visibilityOfElementLocated(By.id("confirmation-section")));
         assertTrue(confirmationSection.isDisplayed(), "Confirmation card must be displayed upon successful submission");
 
         WebElement requestIdElem = driver.findElement(By.id("confirmation-request-id"));
