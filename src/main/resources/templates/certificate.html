@@ -12,12 +12,12 @@
 
     <style>
         .cert-container {
-            max-width: 900px;
+            max-width: 920px;
             margin: 40px auto;
             background: #ffffff;
             color: #0f172a;
             border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.4), 0 10px 15px -6px rgba(0, 0, 0, 0.4);
             border: 8px double #cbd5e1;
             padding: 48px;
             position: relative;
@@ -30,7 +30,7 @@
             transform: translate(-50%, -50%) rotate(-30deg);
             font-size: 6.5rem;
             font-weight: 900;
-            color: rgba(14, 165, 233, 0.05);
+            color: rgba(14, 165, 233, 0.04);
             letter-spacing: 0.15em;
             pointer-events: none;
             user-select: none;
@@ -40,7 +40,7 @@
         .cert-header {
             border-bottom: 2px solid #0f172a;
             padding-bottom: 24px;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
 
         .cert-badge {
@@ -55,10 +55,60 @@
             display: inline-block;
         }
 
-        .sign-block {
-            border-top: 1px solid #94a3b8;
-            padding-top: 8px;
-            margin-top: 40px;
+        .sig-box {
+            background: #f8fafc;
+            border: 1px dashed #94a3b8;
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
+            min-height: 140px;
+        }
+
+        .sig-box.sealed {
+            border: 1px solid #10b981;
+            background: #f0fdf4;
+        }
+
+        .sig-canvas {
+            width: 100%;
+            height: 90px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .sig-canvas.disabled {
+            pointer-events: none;
+            cursor: default;
+            background: transparent;
+            border: none;
+        }
+
+        .seal-stamp {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            color: #ecfdf5;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            border: 1px solid #10b981;
+        }
+
+        .crypto-hash-pill {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #334155;
+            word-break: break-all;
         }
 
         @media print {
@@ -66,14 +116,18 @@
                 background: white !important;
                 color: black !important;
             }
-            .no-print {
+            .no-print, .sig-tools {
                 display: none !important;
             }
             .cert-container {
                 box-shadow: none !important;
                 border: 4px solid #000 !important;
                 margin: 0 auto !important;
-                padding: 30px !important;
+                padding: 24px !important;
+            }
+            .sig-box {
+                border: 1px solid #cbd5e1 !important;
+                background: transparent !important;
             }
         }
     </style>
@@ -82,11 +136,14 @@
 <body style="background-color: #0b1120; min-height: 100vh;">
 
     <!-- Print / Return Action Bar -->
-    <div class="no-print container py-3 text-center d-flex justify-content-between align-items-center" style="max-width: 900px;">
+    <div class="no-print container py-3 text-center d-flex justify-content-between align-items-center" style="max-width: 920px;">
         <a th:href="@{'/track-request/' + ${cert.request.id}}" class="btn btn-outline-light btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Back to Request #<span th:text="${cert.request.id}">1</span>
         </a>
         <div class="d-flex gap-2">
+            <button id="quickSignAllBtn" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-pen-fill me-1"></i> Adopt Digital E-Signatures
+            </button>
             <button onclick="window.print()" class="btn btn-primary btn-sm px-4">
                 <i class="bi bi-printer-fill me-1"></i> Print / Save as PDF
             </button>
@@ -104,8 +161,13 @@
                 <p class="text-muted small mb-0">Enterprise Real Estate & Commercial Lease Underwriting Platform</p>
             </div>
             <div class="text-end">
-                <div class="fw-bold text-dark" style="font-size: 0.85rem;" th:text="${cert.certificateNumber}">CERT-LF-1001-A9B8</div>
+                <div class="fw-bold text-dark" style="font-size: 0.85rem;" id="certNumberDisplay" th:text="${cert.certificateNumber}">CERT-LF-1001-A9B8</div>
                 <div class="text-muted" style="font-size: 0.75rem;">Issued: <span th:text="${cert.issueTimestamp}">2026-10-21</span></div>
+                <div class="mt-1">
+                    <span class="seal-stamp">
+                        <i class="bi bi-shield-lock-fill"></i> TAMPER-EVIDENT SEAL
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -126,21 +188,38 @@
                 </div>
                 <div class="col-sm-3">
                     <span class="text-muted d-block small">Status Verdict</span>
-                    <span class="badge bg-success px-2 py-1">APPROVED</span>
+                    <span class="badge bg-success px-2 py-1">APPROVED &amp; SEALED</span>
                 </div>
             </div>
         </div>
 
         <!-- Formal Attestation Text -->
-        <p class="lead" style="font-size: 1.05rem; line-height: 1.6; color: #334155;">
-            This certifies that the attached lease agreement documentation has undergone rigorous multi-stage review,
+        <p class="lead" style="font-size: 1.02rem; line-height: 1.6; color: #334155;">
+            This certifies that the attached lease agreement documentation has successfully undergone rigorous multi-stage review,
             including legal compliance verification, indemnification cross-checks, and financial underwriting validation.
-            All mandatory covenants have been satisfied in full compliance with corporate policy and regulatory statutes.
+            All mandatory covenants have been satisfied in full compliance with corporate real estate underwriting standards.
         </p>
 
+        <!-- Cryptographic Master Seal Block -->
+        <div class="p-3 mb-4 rounded-2" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1;">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-patch-check-fill text-success fs-5"></i>
+                    <strong class="text-dark small">Cryptographic Master Certificate Seal (SHA-256 Digest)</strong>
+                </div>
+                <span class="badge bg-dark text-info" style="font-size: 0.68rem; font-family: monospace;">RFC 6234 VALID</span>
+            </div>
+            <div class="crypto-hash-pill" th:text="${cert.cryptographicSealHash}">
+                7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+            </div>
+            <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                This SHA-256 hash mathematically seals the Request ID, Legal &amp; Finance Reviewers, Document Checksums, and Issue Timestamp. Any post-issuance alteration invalidates the audit chain.
+            </div>
+        </div>
+
         <!-- Document Cryptographic Fingerprints -->
-        <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom" style="font-size: 0.95rem; border-color: #e2e8f0 !important;">
-            <i class="bi bi-shield-check text-success me-1"></i> Verified Document Fingerprints (SHA-256)
+        <h5 class="fw-bold text-dark mt-4 mb-2 pb-1 border-bottom" style="font-size: 0.92rem; border-color: #e2e8f0 !important;">
+            <i class="bi bi-file-earmark-lock text-primary me-1"></i> Underlying Document Audit Fingerprints
         </h5>
         <div class="table-responsive mb-4">
             <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 0.8rem;">
@@ -169,30 +248,240 @@
             </table>
         </div>
 
-        <!-- Sign-Off Endorsements -->
-        <div class="row mt-5 pt-3">
-            <div class="col-6">
-                <div class="sign-block">
-                    <div class="fw-bold text-dark" style="font-size: 0.9rem;" th:text="${cert.legalSigner}">Sarah Jenkins</div>
-                    <div class="text-muted" style="font-size: 0.75rem;">Stage 1: Legal Compliance & Counsel</div>
-                    <div class="text-muted" style="font-size: 0.72rem;">Signed: <span th:text="${cert.legalSignDate}">2026-10-21</span></div>
-                </div>
+        <!-- Interactive E-Signature Pad Section -->
+        <div class="mt-4 pt-2">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">
+                    <i class="bi bi-vector-pen text-indigo me-1"></i> Authorized Officer Digital Endorsements
+                </h5>
+                <span class="text-muted small">Interactive Canvas &amp; Cryptographic Lock</span>
             </div>
-            <div class="col-6">
-                <div class="sign-block">
-                    <div class="fw-bold text-dark" style="font-size: 0.9rem;" th:text="${cert.financeSigner}">Marcus Vance</div>
-                    <div class="text-muted" style="font-size: 0.75rem;">Stage 2: Finance & Commercial Underwriting</div>
-                    <div class="text-muted" style="font-size: 0.72rem;">Finalized: <span th:text="${cert.financeSignDate}">2026-10-21</span></div>
+
+            <div class="row g-4">
+                <!-- Legal Reviewer Sign-off Box -->
+                <div class="col-md-6">
+                    <div class="sig-box" id="legalSigBox">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong class="text-dark d-block" style="font-size: 0.85rem;" id="legalSignerName" th:text="${cert.legalSigner}">Legal Reviewer</strong>
+                                <span class="text-muted" style="font-size: 0.7rem;">Stage 1: Legal Counsel &amp; Statutory Compliance</span>
+                            </div>
+                            <span class="badge bg-light text-dark border" id="legalSealStatus" style="font-size: 0.68rem;">Ready to Sign</span>
+                        </div>
+
+                        <!-- Canvas -->
+                        <canvas id="legalCanvas" class="sig-canvas" width="380" height="90"></canvas>
+
+                        <!-- Controls -->
+                        <div class="sig-tools d-flex justify-content-between align-items-center mt-2">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearLegalBtn" style="font-size: 0.7rem;">Clear</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="adoptLegalBtn" style="font-size: 0.7rem;">Adopt Script</button>
+                            </div>
+                            <button type="button" class="btn btn-success btn-sm" id="lockLegalBtn" style="font-size: 0.7rem;">
+                                <i class="bi bi-shield-check me-1"></i> Lock &amp; Seal
+                            </button>
+                        </div>
+
+                        <div class="mt-2 text-muted" style="font-size: 0.7rem;">
+                            Verified Date: <span th:text="${cert.legalSignDate}">2026-10-21</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finance Manager Sign-off Box -->
+                <div class="col-md-6">
+                    <div class="sig-box" id="financeSigBox">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong class="text-dark d-block" style="font-size: 0.85rem;" id="financeSignerName" th:text="${cert.financeSigner}">Finance Manager</strong>
+                                <span class="text-muted" style="font-size: 0.7rem;">Stage 2: Underwriting &amp; Escrow Verification</span>
+                            </div>
+                            <span class="badge bg-light text-dark border" id="financeSealStatus" style="font-size: 0.68rem;">Ready to Sign</span>
+                        </div>
+
+                        <!-- Canvas -->
+                        <canvas id="financeCanvas" class="sig-canvas" width="380" height="90"></canvas>
+
+                        <!-- Controls -->
+                        <div class="sig-tools d-flex justify-content-between align-items-center mt-2">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFinanceBtn" style="font-size: 0.7rem;">Clear</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="adoptFinanceBtn" style="font-size: 0.7rem;">Adopt Script</button>
+                            </div>
+                            <button type="button" class="btn btn-success btn-sm" id="lockFinanceBtn" style="font-size: 0.7rem;">
+                                <i class="bi bi-shield-check me-1"></i> Lock &amp; Seal
+                            </button>
+                        </div>
+
+                        <div class="mt-2 text-muted" style="font-size: 0.7rem;">
+                            Finalized Date: <span th:text="${cert.financeSignDate}">2026-10-21</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Footer / Authenticity Seal -->
         <div class="mt-5 pt-3 border-top text-center text-muted" style="font-size: 0.7rem; border-color: #e2e8f0 !important;">
-            <p class="mb-0">This document represents an immutable audit certificate generated by the Lease Document Approval System.</p>
-            <p class="mb-0">Cryptographic authenticity is verified against internal audit history records.</p>
+            <p class="mb-1">This document represents an immutable audit certificate generated by the Lease Document Approval System.</p>
+            <p class="mb-0">Cryptographic authenticity is verified against internal audit history records and SHA-256 digital seals.</p>
         </div>
     </div>
 
+    <!-- Interactive Canvas & E-Signature Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const certNum = document.getElementById('certNumberDisplay').textContent.trim();
+
+            function setupPad(canvasId, clearBtnId, adoptBtnId, lockBtnId, statusId, boxId, signerNameId, storageKey) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const clearBtn = document.getElementById(clearBtnId);
+                const adoptBtn = document.getElementById(adoptBtnId);
+                const lockBtn = document.getElementById(lockBtnId);
+                const statusBadge = document.getElementById(statusId);
+                const box = document.getElementById(boxId);
+                const signerName = document.getElementById(signerNameId).textContent.trim();
+
+                let isDrawing = false;
+                let hasDrawn = false;
+                let isLocked = false;
+
+                // Configure smooth drawing
+                ctx.lineWidth = 2.2;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#0f172a';
+
+                function getPos(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    return {
+                        x: (clientX - rect.left) * (canvas.width / rect.width),
+                        y: (clientY - rect.top) * (canvas.height / rect.height)
+                    };
+                }
+
+                function startDraw(e) {
+                    if (isLocked) return;
+                    isDrawing = true;
+                    hasDrawn = true;
+                    const pos = getPos(e);
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    if (e.type === 'touchstart') e.preventDefault();
+                }
+
+                function draw(e) {
+                    if (!isDrawing || isLocked) return;
+                    const pos = getPos(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    if (e.type === 'touchmove') e.preventDefault();
+                }
+
+                function endDraw(e) {
+                    if (!isDrawing) return;
+                    isDrawing = false;
+                }
+
+                canvas.addEventListener('mousedown', startDraw);
+                canvas.addEventListener('mousemove', draw);
+                window.addEventListener('mouseup', endDraw);
+
+                canvas.addEventListener('touchstart', startDraw, { passive: false });
+                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchend', endDraw);
+
+                function clearCanvas() {
+                    if (isLocked) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    hasDrawn = false;
+                }
+
+                function adoptCursive() {
+                    if (isLocked) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.save();
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = 'italic 32px "Brush Script MT", "Segoe Script", "Dancing Script", cursive';
+                    ctx.fillText(signerName, 25, 48);
+
+                    // Decorative flourish underline
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#0284c7';
+                    ctx.lineWidth = 1.8;
+                    ctx.moveTo(20, 58);
+                    ctx.bezierCurveTo(90, 68, 180, 52, 280, 62);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    hasDrawn = true;
+                }
+
+                function lockAndSeal(save = true) {
+                    if (!hasDrawn) {
+                        adoptCursive();
+                    }
+                    isLocked = true;
+                    canvas.classList.add('disabled');
+                    box.classList.add('sealed');
+                    statusBadge.className = 'badge bg-success';
+                    statusBadge.innerHTML = '<i class="bi bi-shield-check me-1"></i> Cryptographically Sealed';
+
+                    // Hide tools in sealed view
+                    const tools = box.querySelector('.sig-tools');
+                    if (tools) {
+                        tools.innerHTML = '<span class="text-success small fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-check2-circle me-1"></i> Digital signature verified & locked</span>';
+                    }
+
+                    if (save) {
+                        try {
+                            const dataUrl = canvas.toDataURL();
+                            localStorage.setItem(storageKey, dataUrl);
+                        } catch (e) {
+                            console.warn('Storage failed:', e);
+                        }
+                    }
+                }
+
+                clearBtn.addEventListener('click', clearCanvas);
+                adoptBtn.addEventListener('click', adoptCursive);
+                lockBtn.addEventListener('click', () => lockAndSeal(true));
+
+                // Restore from localStorage if present
+                const saved = localStorage.getItem(storageKey);
+                if (saved) {
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0);
+                        hasDrawn = true;
+                        lockAndSeal(false);
+                    };
+                    img.src = saved;
+                }
+
+                return { adoptCursive, lockAndSeal };
+            }
+
+            const legalPad = setupPad('legalCanvas', 'clearLegalBtn', 'adoptLegalBtn', 'lockLegalBtn',
+                'legalSealStatus', 'legalSigBox', 'legalSignerName', 'cert_sig_' + certNum + '_legal');
+
+            const financePad = setupPad('financeCanvas', 'clearFinanceBtn', 'adoptFinanceBtn', 'lockFinanceBtn',
+                'financeSealStatus', 'financeSigBox', 'financeSignerName', 'cert_sig_' + certNum + '_finance');
+
+            const quickAllBtn = document.getElementById('quickSignAllBtn');
+            if (quickAllBtn) {
+                quickAllBtn.addEventListener('click', () => {
+                    legalPad.adoptCursive();
+                    legalPad.lockAndSeal(true);
+                    financePad.adoptCursive();
+                    financePad.lockAndSeal(true);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

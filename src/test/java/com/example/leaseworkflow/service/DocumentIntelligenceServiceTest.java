@@ -25,6 +25,8 @@ public class DocumentIntelligenceServiceTest {
                 Monthly Rent: $3,500.00 due on the first day of each month.
                 Security Deposit: $7,000.00 held in an escrow account.
                 Lease Term: 24 Months beginning October 1st.
+                Governing Law: State of New York.
+                Termination: 60 days prior written notice required.
                 Clause 12 - Indemnification and Liability: The Tenant agrees to indemnify and hold harmless the Landlord.
                 Clause 15 - Default & Termination: If tenant defaults, notice of default shall be served.
                 """;
@@ -38,6 +40,10 @@ public class DocumentIntelligenceServiceTest {
         assertEquals("$7,000.00", result.extractedDeposit());
         assertEquals("24 Months", result.extractedTerm());
         assertEquals("LOW", result.riskLevel());
+        assertTrue(result.complianceScore() >= 80);
+        assertTrue(result.governingLaw().contains("New York"));
+        assertTrue(result.terminationNotice().contains("60 Days"));
+        assertFalse(result.clauses().isEmpty());
         assertFalse(result.complianceChecks().isEmpty());
         assertTrue(result.riskAlerts().isEmpty());
     }
@@ -61,6 +67,7 @@ public class DocumentIntelligenceServiceTest {
         assertNotNull(result);
         assertTrue(result.riskAlerts().stream().anyMatch(a -> a.contains("Discrepancy")));
         assertNotEquals("LOW", result.riskLevel());
+        assertTrue(result.complianceScore() < 80);
     }
 
     @Test
@@ -72,5 +79,6 @@ public class DocumentIntelligenceServiceTest {
         assertEquals("Needs Review", result.extractedRent());
         assertEquals("Needs Review", result.extractedDeposit());
         assertFalse(result.riskAlerts().isEmpty());
+        assertTrue(result.complianceScore() <= 20);
     }
 }

@@ -30,16 +30,30 @@ class PersonaServiceTest {
     void testFindPersonaById() {
         UserPersona tenant = personaService.getPersonaById("john.tenant");
         assertNotNull(tenant);
-        assertEquals("John Doe", tenant.getDisplayName());
+        assertEquals("Prathmesh", tenant.getDisplayName());
         assertEquals(UserRole.TENANT, tenant.getRole());
         assertTrue(tenant.isTenant());
         assertFalse(tenant.canReview());
 
         UserPersona legal = personaService.getPersonaById("sarah.legal");
         assertNotNull(legal);
-        assertEquals("Sarah Jenkins", legal.getDisplayName());
+        assertEquals("Legal Reviewer", legal.getDisplayName());
         assertEquals(UserRole.LEGAL_REVIEWER, legal.getRole());
         assertTrue(legal.canReview());
+
+        UserPersona finance = personaService.getPersonaById("marcus.finance");
+        assertNotNull(finance);
+        assertEquals("Finance Manager", finance.getDisplayName());
+
+        UserPersona admin = personaService.getPersonaById("elena.admin");
+        assertNotNull(admin);
+        assertEquals("Administrator", admin.getDisplayName());
+
+        // Alias checks
+        assertEquals("Prathmesh", personaService.getPersonaById("prathmesh").getDisplayName());
+        assertEquals("Legal Reviewer", personaService.getPersonaById("legal").getDisplayName());
+        assertEquals("Finance Manager", personaService.getPersonaById("finance").getDisplayName());
+        assertEquals("Administrator", personaService.getPersonaById("admin").getDisplayName());
     }
 
     @Test

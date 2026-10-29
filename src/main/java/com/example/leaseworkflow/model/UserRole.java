@@ -2,9 +2,9 @@ package com.example.leaseworkflow.model;
 
 public enum UserRole {
     TENANT("Tenant / Requester", "Can submit lease requests, track status, and upload revisions.", "badge-tenant", "#38bdf8"),
-    LEGAL_REVIEWER("Legal Compliance Officer", "Verifies lease agreements, title deeds, and regulatory compliance.", "badge-legal", "#c084fc"),
-    FINANCE_MANAGER("Finance & Risk Manager", "Audits financial terms, security deposits, and gives executive approval.", "badge-finance", "#34d399"),
-    ADMIN("System Admin & Auditor", "Platform administration, user governance, and compliance audit trail.", "badge-admin", "#f43f5e");
+    LEGAL_REVIEWER("Legal Reviewer", "Verifies lease agreements, title deeds, and regulatory compliance.", "badge-legal", "#c084fc"),
+    FINANCE_MANAGER("Finance Manager", "Audits financial terms, security deposits, and gives executive approval.", "badge-finance", "#34d399"),
+    ADMIN("Administrator", "Platform administration, user governance, and compliance audit trail.", "badge-admin", "#f43f5e");
 
     private final String displayName;
     private final String description;
