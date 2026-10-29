@@ -35,7 +35,7 @@ public class SubmitOversizedDocumentTest extends BaseSeleniumTest {
         requesterInput.sendKeys(uniqueRequester);
 
         Select leaseTypeSelect = new Select(driver.findElement(By.id("leaseType")));
-        leaseTypeSelect.selectByValue("Commercial");
+        leaseTypeSelect.selectByValue("COMMERCIAL");
 
         WebElement fileInput = driver.findElement(By.id("fileInput"));
         fileInput.sendKeys(oversizedFile.getAbsolutePath());
@@ -49,14 +49,18 @@ public class SubmitOversizedDocumentTest extends BaseSeleniumTest {
 
         WebElement errorMessage = driver.findElement(By.id("error-message"));
         String errorText = errorMessage.getText().toLowerCase();
-        assertTrue(errorText.contains("5mb") || errorText.contains("5 mb") || errorText.contains("valid document") || errorText.contains("exceed"),
+        assertTrue(
+                errorText.contains("5mb") || errorText.contains("5 mb") || errorText.contains("valid document")
+                        || errorText.contains("exceed"),
                 "Error message should indicate file size violation (5 MB limit)");
 
         // Assert confirmation section is NOT displayed
         List<WebElement> confirmations = driver.findElements(By.id("confirmation-section"));
-        assertTrue(confirmations.isEmpty(), "No confirmation card should be rendered when oversized file upload is rejected");
+        assertTrue(confirmations.isEmpty(),
+                "No confirmation card should be rendered when oversized file upload is rejected");
 
-        // Verify through repository that no request was persisted for this unique requester
+        // Verify through repository that no request was persisted for this unique
+        // requester
         boolean existsInDb = leaseRequestRepository.findAll().stream()
                 .anyMatch(r -> uniqueRequester.equals(r.getRequesterId()));
         assertFalse(existsInDb, "Lease request with oversized document should not be persisted in the database");

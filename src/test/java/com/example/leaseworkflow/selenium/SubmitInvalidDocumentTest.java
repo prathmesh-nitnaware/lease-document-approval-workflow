@@ -33,7 +33,7 @@ public class SubmitInvalidDocumentTest extends BaseSeleniumTest {
         requesterInput.sendKeys(uniqueRequester);
 
         Select leaseTypeSelect = new Select(driver.findElement(By.id("leaseType")));
-        leaseTypeSelect.selectByValue("Residential");
+        leaseTypeSelect.selectByValue("RESIDENTIAL");
 
         WebElement fileInput = driver.findElement(By.id("fileInput"));
         fileInput.sendKeys(invalidFile.getAbsolutePath());
@@ -46,7 +46,9 @@ public class SubmitInvalidDocumentTest extends BaseSeleniumTest {
         assertTrue(errorAlert.isDisplayed(), "Error alert should be displayed for invalid file type");
 
         WebElement errorMessage = driver.findElement(By.id("error-message"));
-        assertTrue(errorMessage.getText().toLowerCase().contains("required") || errorMessage.getText().toLowerCase().contains("valid"),
+        assertTrue(
+                errorMessage.getText().toLowerCase().contains("required")
+                        || errorMessage.getText().toLowerCase().contains("valid"),
                 "Error message should mention document validation failure");
 
         // Assert confirmation card does NOT appear

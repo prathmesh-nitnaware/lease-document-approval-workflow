@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Submit Request')}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +9,32 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <link rel="stylesheet" th:href="@{/css/theme-luxury.css}">
+
+    <style>
+        /* Fix: dropdown options invisible on dark theme */
+        select {
+            color-scheme: dark;
+        }
+
+        select option {
+            background-color: #1e1b2e;
+            color: #ffffff;
+        }
+    </style>
 </head>
+
 <body class="app-body">
+
+    <!-- Fix: dropdown option visibility on dark theme -->
+    <style>
+        select, .form-select {
+            color-scheme: dark !important;
+        }
+        select option, .form-select option {
+            background-color: #1e1b2e !important;
+            color: #ffffff !important;
+        }
+    </style>
 
     <!-- Shared Navigation -->
     <header th:replace="~{fragments/layout :: navbar('submit')}"></header>
@@ -17,129 +42,227 @@
     <!-- Shared Flash Alerts -->
     <div th:replace="~{fragments/layout :: alerts}"></div>
 
-    <main id="main-content" class="container" style="max-width: 680px; padding-top: var(--space-8); padding-bottom: var(--space-12);">
+    <main id="main-content" class="container"
+        style="max-width: 680px; padding-top: var(--space-8); padding-bottom: var(--space-12);">
 
         <div class="card animate-fade-in" style="overflow: hidden;">
+
             <!-- Gradient Header -->
-            <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(6, 182, 212, 0.15) 100%); padding: var(--space-6) var(--space-8); text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
-                <div class="d-inline-flex align-items-center justify-content-center p-2 rounded-circle mb-2" style="background: linear-gradient(135deg, #7c3aed, #a78bfa); box-shadow: 0 0 24px rgba(124, 58, 237, 0.3);">
+            <div
+                style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(6, 182, 212, 0.15) 100%); padding: var(--space-6) var(--space-8); text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
+
+                <div class="d-inline-flex align-items-center justify-content-center p-2 rounded-circle mb-2"
+                    style="background: linear-gradient(135deg, #7c3aed, #a78bfa); box-shadow: 0 0 24px rgba(124, 58, 237, 0.3);">
                     <i class="bi bi-file-earmark-arrow-up-fill fs-4 text-white"></i>
                 </div>
-                <h1 style="font-size: var(--font-2xl); font-weight: 800; margin-bottom: 4px; letter-spacing: -0.02em; color: #fafafa !important;">Lease Request Submission</h1>
-                <p style="font-size: var(--font-sm); color: #a1a1aa !important; margin: 0;">Tenant onboarding and automated lease document verification pipeline</p>
+
+                <h1
+                    style="font-size: var(--font-2xl); font-weight: 800; margin-bottom: 4px; letter-spacing: -0.02em; color: #fafafa !important;">
+                    Lease Request Submission
+                </h1>
+
+                <p style="font-size: var(--font-sm); color: #a1a1aa !important; margin: 0;">
+                    Tenant onboarding and automated lease document verification pipeline
+                </p>
             </div>
 
             <div class="card-body" style="padding: var(--space-8);">
 
                 <!-- Notice for reviewers -->
-                <div th:if="${canReview}" class="alert alert-warning mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 rounded-3">
+                <div th:if="${canReview}"
+                    class="alert alert-warning mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 rounded-3">
+
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-shield-exclamation fs-5"></i>
                         <div style="font-size: 0.84rem;">
-                            <strong>Reviewer Mode:</strong> Tenants initiate lease requests. Reviewers evaluate items in the queue.
+                            <strong>Reviewer Mode:</strong>
+                            Tenants initiate lease requests. Reviewers evaluate items in the queue.
                         </div>
                     </div>
-                    <a th:href="@{/reviewer-queue}" class="btn btn-sm btn-outline-warning text-nowrap" style="font-size: 0.76rem;">Review Queue &rarr;</a>
+
+                    <a th:href="@{/reviewer-queue}" class="btn btn-sm btn-outline-warning text-nowrap"
+                        style="font-size: 0.76rem;">
+                        Review Queue &rarr;
+                    </a>
                 </div>
 
                 <!-- Error Alert -->
-                <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert" style="padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <div th:if="${errorMessage}" class="alert alert-danger" id="error-alert"
+                    style="padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+
                     <i class="bi bi-exclamation-triangle"></i>
                     <span th:text="${errorMessage}" id="error-message">Validation Error</span>
                 </div>
 
                 <!-- Success Confirmation -->
-                <div th:if="${success}" class="confirmation-card" id="confirmation-section" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div th:if="${success}" class="confirmation-card" id="confirmation-section"
+                    style="padding: 1.5rem; margin-bottom: 1.5rem;">
+
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #059669, #34d399); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(52,211,153,0.3);">
+
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #059669, #34d399); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(52,211,153,0.3);">
                             <i class="bi bi-check-lg text-white fs-5"></i>
                         </div>
+
                         <div>
-                            <h3 style="color: #34d399; font-size: 1.2rem; margin: 0; font-weight: 700;">Request Submitted!</h3>
+                            <h3 style="color: #34d399; font-size: 1.2rem; margin: 0; font-weight: 700;">
+                                Request Submitted!
+                            </h3>
+
                             <p style="color: #a1a1aa; font-size: 0.9rem; margin-top: 2px;">
-                                ID: <strong th:text="${requestId}" id="confirmation-request-id" style="color: #fafafa;">#101</strong>
+                                ID:
+                                <strong th:text="${requestId}" id="confirmation-request-id"
+                                    style="color: #fafafa;">#101</strong>
                             </p>
                         </div>
-                        <span class="badge-status status-badge-approved" id="confirmation-status" th:text="${status}" style="margin-left: auto;">SUBMITTED</span>
+
+                        <span class="badge-status status-badge-approved" id="confirmation-status" th:text="${status}"
+                            style="margin-left: auto;">
+                            SUBMITTED
+                        </span>
                     </div>
 
-                    <h4 style="font-size: 0.9rem; margin-top: 1.2rem; color: #d4d4d8;">Attached Documents</h4>
-                    <table class="doc-table" id="confirmation-doc-table" style="width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.88rem;">
+                    <h4 style="font-size: 0.9rem; margin-top: 1.2rem; color: #d4d4d8;">
+                        Attached Documents
+                    </h4>
+
+                    <table class="doc-table" id="confirmation-doc-table"
+                        style="width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.88rem;">
+
                         <thead>
                             <tr>
-                                <th style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">File Name</th>
-                                <th style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">Type</th>
-                                <th style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">Size</th>
-                                <th style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">Status</th>
+                                <th
+                                    style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                                    File Name
+                                </th>
+                                <th
+                                    style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                                    Type
+                                </th>
+                                <th
+                                    style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                                    Size
+                                </th>
+                                <th
+                                    style="padding: 0.5rem 0.75rem; color: #71717a; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                                    Status
+                                </th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            <tr th:each="doc : ${uploadedDocuments}" style="border-bottom: 1px solid rgba(255,255,255,0.04);">
-                                <td th:text="${doc.fileName}" style="padding: 0.5rem 0.75rem; color: #d4d4d8;">doc.pdf</td>
-                                <td th:text="${doc.fileType}" style="padding: 0.5rem 0.75rem; color: #a1a1aa;">PDF</td>
-                                <td th:text="${doc.fileSize >= 1048576 ? #numbers.formatDecimal(doc.fileSize / 1048576.0, 1, 2) + ' MB' : #numbers.formatDecimal(doc.fileSize / 1024.0, 1, 2) + ' KB'}" style="padding: 0.5rem 0.75rem; color: #a1a1aa;">1.2 MB</td>
-                                <td th:text="${doc.validationResult}" style="color: #34d399; font-weight: 600; padding: 0.5rem 0.75rem;">VALID</td>
+                            <tr th:each="doc : ${uploadedDocuments}"
+                                style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+
+                                <td th:text="${doc.fileName}" style="padding: 0.5rem 0.75rem; color: #d4d4d8;">
+                                    doc.pdf
+                                </td>
+
+                                <td th:text="${doc.fileType}" style="padding: 0.5rem 0.75rem; color: #a1a1aa;">
+                                    PDF
+                                </td>
+
+                                <td th:text="${doc.fileSize >= 1048576 ? #numbers.formatDecimal(doc.fileSize / 1048576.0, 1, 2) + ' MB' : #numbers.formatDecimal(doc.fileSize / 1024.0, 1, 2) + ' KB'}"
+                                    style="padding: 0.5rem 0.75rem; color: #a1a1aa;">
+                                    1.2 MB
+                                </td>
+
+                                <td th:text="${doc.validationResult}"
+                                    style="color: #34d399; font-weight: 600; padding: 0.5rem 0.75rem;">
+                                    VALID
+                                </td>
                             </tr>
                         </tbody>
                     </table>
 
                     <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                        <a href="/submit-request" id="submit-another-link" style="color: #a78bfa; text-decoration: none; font-weight: 600;">&larr; Submit Another</a>
-                        <a th:href="@{'/track-request/' + ${requestId}}" id="track-submitted-link" style="color: #06b6d4; text-decoration: none; font-weight: 600;">Track Request &rarr;</a>
+                        <a href="/submit-request" id="submit-another-link"
+                            style="color: #a78bfa; text-decoration: none; font-weight: 600;">
+                            &larr; Submit Another
+                        </a>
+
+                        <a th:href="@{'/track-request/' + ${requestId}}" id="track-submitted-link"
+                            style="color: #06b6d4; text-decoration: none; font-weight: 600;">
+                            Track Request &rarr;
+                        </a>
                     </div>
                 </div>
 
                 <!-- Submission Form -->
-                <form th:unless="${success}" action="/submit-request" method="post" enctype="multipart/form-data" id="lease-request-form">
+                <form th:unless="${success}" action="/submit-request" method="post" enctype="multipart/form-data"
+                    id="lease-request-form">
 
                     <div class="form-group" style="margin-bottom: var(--space-4);">
                         <label for="requesterId" class="form-label">
-                            Requester Name / ID <span style="color: #fb7185;">*</span>
+                            Requester Name / ID
+                            <span style="color: #fb7185;">*</span>
                         </label>
-                        <input type="text" id="requesterId" name="requesterId" th:value="${requesterId}" placeholder="e.g., Jane Doe (EMP-2026)" required class="form-control">
+
+                        <input type="text" id="requesterId" name="requesterId" th:value="${requesterId}"
+                            placeholder="e.g., Jane Doe (EMP-2026)" required class="form-control">
                     </div>
 
                     <div class="form-group" style="margin-bottom: var(--space-4);">
                         <label for="leaseType" class="form-label">
-                            Lease Type <span style="color: #fb7185;">*</span>
+                            Lease Type
+                            <span style="color: #fb7185;">*</span>
                         </label>
-                        <select id="leaseType" name="leaseType" required class="form-select">
-                            <option value="" disabled th:selected="${leaseType == null or leaseType == ''}">Select Lease Type</option>
-                            <option value="Commercial" th:selected="${leaseType == 'Commercial'}">Commercial Lease</option>
-                            <option value="Residential" th:selected="${leaseType == 'Residential'}">Residential Lease</option>
-                            <option value="Equipment" th:selected="${leaseType == 'Equipment'}">Equipment Lease</option>
-                            <option value="Industrial" th:selected="${leaseType == 'Industrial'}">Industrial Lease</option>
+
+                        <select id="leaseType" name="leaseType" class="form-select" style="color-scheme: dark;"
+                            required>
+
+                            <option value="">Select Lease Type</option>
+                            <option value="COMMERCIAL">Commercial Lease</option>
+                            <option value="RESIDENTIAL">Residential Lease</option>
+                            <option value="EQUIPMENT">Equipment Lease</option>
+                            <option value="INDUSTRIAL">Industrial Lease</option>
                         </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: var(--space-5);">
                         <label class="form-label">
-                            Supporting Documents (PDF, JPG, PNG &le; 5MB) <span style="color: #fb7185;">*</span>
+                            Supporting Documents (PDF, JPG, PNG &le; 5MB)
+                            <span style="color: #fb7185;">*</span>
                         </label>
-                        <div class="file-upload-wrapper drop-zone" id="drop-zone"
-                             ondragover="handleDragOver(event)"
-                             ondragleave="handleDragLeave(event)"
-                             ondrop="handleFileDrop(event)"
-                             style="position: relative; border: 2px dashed rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 2.5rem 1.5rem; text-align: center; background: rgba(124, 58, 237, 0.03); cursor: pointer; transition: all 0.2s ease;">
-                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.6;">📄</div>
-                            <div id="drop-zone-text" style="font-size: 0.92rem; color: #71717a; font-weight: 500;">
-                                Click or drag & drop files here
+
+                        <div class="file-upload-wrapper drop-zone" id="drop-zone" ondragover="handleDragOver(event)"
+                            ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)"
+                            style="position: relative; border: 2px dashed rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 2.5rem 1.5rem; text-align: center; background: rgba(124, 58, 237, 0.03); cursor: pointer; transition: all 0.2s ease;">
+
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.6;">
+                                📄
                             </div>
-                            <div style="font-size: 0.78rem; color: #52525b; margin-top: 4px;">ID Documents, Agreement Drafts, Financial Proof</div>
-                            <input type="file" id="fileInput" name="files" accept=".pdf,.jpg,.jpeg,.png" multiple required onchange="updateFilePreview()"
-                                   style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+
+                            <div id="drop-zone-text" style="font-size: 0.92rem; color: #71717a; font-weight: 500;">
+                                Click or drag &amp; drop files here
+                            </div>
+
+                            <div style="font-size: 0.78rem; color: #52525b; margin-top: 4px;">
+                                ID Documents, Agreement Drafts, Financial Proof
+                            </div>
+
+                            <input type="file" id="fileInput" name="files" accept=".pdf,.jpg,.jpeg,.png" multiple
+                                required onchange="updateFilePreview()"
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
                         </div>
 
-                        <div id="filePreviewContainer" style="display: none; margin-top: 1rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); padding: 0.75rem;">
-                            <h4 style="font-size: 0.8rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                        <div id="filePreviewContainer"
+                            style="display: none; margin-top: 1rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); padding: 0.75rem;">
+
+                            <h4
+                                style="font-size: 0.8rem; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
                                 Selected Files (<span id="fileCount">0</span>)
                             </h4>
+
                             <div id="fileList"></div>
                         </div>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700;">
-                        <i class="bi bi-send me-1"></i> Submit Lease Request
+                    <button type="submit" id="submit-btn" class="btn btn-primary"
+                        style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700;">
+                        <i class="bi bi-send me-1"></i>
+                        Submit Lease Request
                     </button>
                 </form>
 
@@ -155,57 +278,112 @@
 
     <script>
         function handleDragOver(e) {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
+
             var zone = document.getElementById('drop-zone');
             zone.style.borderColor = '#7c3aed';
             zone.style.backgroundColor = 'rgba(124, 58, 237, 0.08)';
         }
+
         function handleDragLeave(e) {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
+
             var zone = document.getElementById('drop-zone');
             zone.style.borderColor = 'rgba(124, 58, 237, 0.3)';
             zone.style.backgroundColor = 'rgba(124, 58, 237, 0.03)';
         }
+
         function handleFileDrop(e) {
-            e.preventDefault(); e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
+
             var zone = document.getElementById('drop-zone');
             zone.style.borderColor = 'rgba(124, 58, 237, 0.3)';
             zone.style.backgroundColor = 'rgba(124, 58, 237, 0.03)';
+
             var files = e.dataTransfer.files;
+
             if (files && files.length > 0) {
                 var input = document.getElementById('fileInput');
-                try { var dt = new DataTransfer(); for (var i = 0; i < files.length; i++) dt.items.add(files[i]); input.files = dt.files; } catch(err) {}
+
+                try {
+                    var dt = new DataTransfer();
+
+                    for (var i = 0; i < files.length; i++) {
+                        dt.items.add(files[i]);
+                    }
+
+                    input.files = dt.files;
+                } catch (err) {
+                    // Browser does not support programmatic file assignment.
+                }
+
                 updateFilePreview();
             }
         }
+
         function updateFilePreview() {
             var input = document.getElementById('fileInput');
             var previewContainer = document.getElementById('filePreviewContainer');
             var fileList = document.getElementById('fileList');
             var fileCount = document.getElementById('fileCount');
+
             fileList.innerHTML = '';
+
             if (input.files && input.files.length > 0) {
                 fileCount.textContent = input.files.length;
                 previewContainer.style.display = 'block';
-                Array.from(input.files).forEach(function(file) {
+
+                Array.from(input.files).forEach(function (file) {
                     var item = document.createElement('div');
-                    item.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.65rem;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:0.35rem;border:1px solid rgba(255,255,255,0.04);';
+
+                    item.style.cssText =
+                        'display:flex;justify-content:space-between;align-items:center;' +
+                        'padding:0.5rem 0.65rem;background:rgba(255,255,255,0.02);' +
+                        'border-radius:8px;margin-bottom:0.35rem;' +
+                        'border:1px solid rgba(255,255,255,0.04);';
+
                     var nameSpan = document.createElement('span');
-                    nameSpan.style.cssText = 'font-weight:500;color:#d4d4d8;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px;';
+
+                    nameSpan.style.cssText =
+                        'font-weight:500;color:#d4d4d8;font-size:0.88rem;' +
+                        'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;' +
+                        'max-width:320px;';
+
                     nameSpan.textContent = file.name;
+
                     var sizeSpan = document.createElement('span');
-                    sizeSpan.style.cssText = 'color:#71717a;font-size:0.78rem;';
+
+                    sizeSpan.style.cssText =
+                        'color:#71717a;font-size:0.78rem;';
+
                     sizeSpan.textContent = formatBytes(file.size);
-                    item.appendChild(nameSpan); item.appendChild(sizeSpan); fileList.appendChild(item);
+
+                    item.appendChild(nameSpan);
+                    item.appendChild(sizeSpan);
+                    fileList.appendChild(item);
                 });
-            } else { previewContainer.style.display = 'none'; }
+            } else {
+                previewContainer.style.display = 'none';
+            }
         }
+
         function formatBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            var k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            if (bytes === 0) {
+                return '0 Bytes';
+            }
+
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
             var i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+            return parseFloat(
+                (bytes / Math.pow(k, i)).toFixed(2)
+            ) + ' ' + sizes[i];
         }
     </script>
 </body>
+
 </html>
