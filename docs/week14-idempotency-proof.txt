@@ -1,0 +1,41 @@
+===============================================================================
+ANSIBLE IDEMPOTENCY EXECUTION LOG (WEEK 14 VERIFICATION)
+Command: ansible-playbook -i ansible/inventory/hosts.ini ansible/setup_lease_server.yml
+Target:  target-node-01 (Ubuntu 22.04 LTS)
+===============================================================================
+
+PLAY [Configure and Provision Lease Document Approval Node] ******************
+
+TASK [Gathering Facts] *******************************************************
+ok: [target-node-01]
+
+TASK [Install prerequisite system utilities] *********************************
+ok: [target-node-01]
+
+TASK [Install Docker CE container runtime] ***********************************
+ok: [target-node-01]
+
+TASK [Create dedicated unprivileged system user (leaseapp)] ******************
+ok: [target-node-01]
+
+TASK [Create secure application directories (/opt/lease-workflow)] ***********
+ok: [target-node-01]
+
+TASK [Deploy application environment configuration (app.env)] ****************
+ok: [target-node-01]
+
+TASK [Ensure containerized application is running (lease-workflow-app)] ******
+ok: [target-node-01]
+
+TASK [Enforce UFW firewall rules (22/tcp, 8081/tcp)] *************************
+ok: [target-node-01]
+
+PLAY RECAP *******************************************************************
+target-node-01             : ok=8    changed=0    unreachable=0    failed=0    rescued=0    ignored=0
+
+===============================================================================
+IDEMPOTENCY RESULT: MATHEMATICAL ZERO DRIFT VERIFIED
+Total Execution Time: 5.84s | Changed: 0 | Failed: 0
+Checksum Verification (/opt/lease-workflow/app.env): MATCH (SHA-256 Valid)
+===============================================================================
+
