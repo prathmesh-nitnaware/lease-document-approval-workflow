@@ -3,27 +3,51 @@ package com.example.leaseworkflow.service;
 import com.example.leaseworkflow.dto.DocumentDto;
 import com.example.leaseworkflow.dto.LeaseRequestResponseDto;
 import com.example.leaseworkflow.model.ReviewAction;
+import com.example.leaseworkflow.model.StatusHistory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 public class CertificateServiceTest {
 
-    private LeaseRequestService leaseRequestService;
+    private StubLeaseRequestService stubService;
     private CertificateService certificateService;
+
+    static class StubLeaseRequestService extends LeaseRequestService {
+        LeaseRequestResponseDto mockDto;
+        List<ReviewAction> mockActions = List.of();
+        List<StatusHistory> mockHistory = List.of();
+
+        StubLeaseRequestService() {
+            super(null, null, null, null, null, null, null);
+        }
+
+        @Override
+        public Optional<LeaseRequestResponseDto> getRequestById(Long id) {
+            return Optional.ofNullable(mockDto);
+        }
+
+        @Override
+        public List<ReviewAction> getReviewActions(Long id) {
+            return mockActions;
+        }
+
+        @Override
+        public List<StatusHistory> getStatusHistory(Long id) {
+            return mockHistory;
+        }
+    }
 
     @BeforeEach
     void setUp() {
-        leaseRequestService = Mockito.mock(LeaseRequestService.class);
-        certificateService = new CertificateService(leaseRequestService);
+        stubService = new StubLeaseRequestService();
+        certificateService = new CertificateService(stubService);
     }
 
     @Test
@@ -39,12 +63,12 @@ public class CertificateServiceTest {
                 LocalDateTime.now(), List.of(doc)
         );
 
-        when(leaseRequestService.getRequestById(reqId)).thenReturn(Optional.of(approvedDto));
-        when(leaseRequestService.getReviewActions(reqId)).thenReturn(List.of(
+        stubService.mockDto = approvedDto;
+        stubService.mockActions = List.of(
                 new ReviewAction(reqId, "Sarah Jenkins", "LEGAL_APPROVE", "Legal OK"),
                 new ReviewAction(reqId, "Marcus Vance", "FINANCE_APPROVE", "Finance OK")
-        ));
-        when(leaseRequestService.getStatusHistory(reqId)).thenReturn(List.of());
+        );
+        stubService.mockHistory = List.of();
 
         CertificateService.CertificateData cert = certificateService.generateCertificate(reqId);
 
@@ -52,6 +76,8 @@ public class CertificateServiceTest {
         assertTrue(cert.certificateNumber().startsWith("CERT-LF-100"));
         assertEquals("Sarah Jenkins (Legal)", cert.legalSigner());
         assertEquals("Marcus Vance (Finance)", cert.financeSigner());
+        assertNotNull(cert.cryptographicSealHash());
+        assertFalse(cert.cryptographicSealHash().isBlank());
         assertNotNull(cert.request());
         assertEquals(1, cert.request().getDocuments().size());
     }
@@ -66,7 +92,7 @@ public class CertificateServiceTest {
                 LocalDateTime.now(), List.of()
         );
 
-        when(leaseRequestService.getRequestById(reqId)).thenReturn(Optional.of(pendingDto));
+        stubService.mockDto = pendingDto;
 
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
                 certificateService.generateCertificate(reqId));

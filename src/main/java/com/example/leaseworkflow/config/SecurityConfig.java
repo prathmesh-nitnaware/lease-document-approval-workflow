@@ -35,6 +35,12 @@ public class SecurityConfig {
                 .roles("TENANT")
                 .build();
 
+        UserDetails prathmesh = User.builder()
+                .username("prathmesh")
+                .password(encodedPassword)
+                .roles("TENANT")
+                .build();
+
         UserDetails legal = User.builder()
                 .username("sarah.legal")
                 .password(encodedPassword)
@@ -53,7 +59,13 @@ public class SecurityConfig {
                 .roles("ADMIN", "REVIEWER", "LEGAL_REVIEWER", "FINANCE_MANAGER", "TENANT")
                 .build();
 
-        return new InMemoryUserDetailsManager(tenant, legal, finance, admin);
+        UserDetails adminUser = User.builder()
+                .username("admin")
+                .password(encodedPassword)
+                .roles("ADMIN", "REVIEWER", "LEGAL_REVIEWER", "FINANCE_MANAGER", "TENANT")
+                .build();
+
+        return new InMemoryUserDetailsManager(tenant, prathmesh, legal, finance, admin, adminUser);
     }
 
     @Bean
@@ -65,7 +77,7 @@ public class SecurityConfig {
                 // Landing page, Quick Switcher, and Login page
                 .requestMatchers("/", "/home", "/login", "/quick-login", "/switch-persona").permitAll()
                 // Public and Demo Workflow paths
-                .requestMatchers("/submit-request", "/track-request/**", "/reviewer-queue", "/review-queue", "/reviewer/**", "/dashboard", "/api/**").permitAll()
+                .requestMatchers("/submit-request", "/track-request/**", "/requests/**", "/reviewer-queue", "/review-queue", "/reviewer/**", "/dashboard", "/api/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

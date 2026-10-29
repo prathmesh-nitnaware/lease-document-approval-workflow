@@ -26,35 +26,35 @@ public class PersonaService {
     private void initPersonas() {
         addPersona(new UserPersona(
                 "john.tenant",
-                "John Doe",
-                "john.doe@enterprise-tenant.com",
+                "Prathmesh",
+                "prathmesh.tenant@leaseflow.internal",
                 "Commercial Lease Applicant",
                 UserRole.TENANT,
-                "JD"
+                "PN"
         ));
         addPersona(new UserPersona(
                 "sarah.legal",
-                "Sarah Jenkins",
-                "sarah.jenkins@leaseflow.internal",
-                "Senior Legal Compliance Officer",
+                "Legal Reviewer",
+                "legal.reviewer@leaseflow.internal",
+                "Legal Compliance Office",
                 UserRole.LEGAL_REVIEWER,
-                "SJ"
+                "LR"
         ));
         addPersona(new UserPersona(
                 "marcus.finance",
-                "Marcus Vance",
-                "marcus.vance@leaseflow.internal",
-                "Head of Commercial Underwriting & Finance",
+                "Finance Manager",
+                "finance.manager@leaseflow.internal",
+                "Commercial Finance & Underwriting",
                 UserRole.FINANCE_MANAGER,
-                "MV"
+                "FM"
         ));
         addPersona(new UserPersona(
                 "elena.admin",
-                "Elena Rostova",
-                "elena.rostova@leaseflow.internal",
-                "Lead Platform Auditor & Administrator",
+                "Administrator",
+                "admin@leaseflow.internal",
+                "Platform Administration & Governance",
                 UserRole.ADMIN,
-                "ER"
+                "AD"
         ));
     }
 
@@ -70,7 +70,17 @@ public class PersonaService {
         if (id == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(personas.get(id.trim().toLowerCase()));
+        String normalized = id.trim().toLowerCase();
+        if ("prathmesh".equals(normalized) || "prathmesh.tenant".equals(normalized)) {
+            normalized = "john.tenant";
+        } else if ("legal".equals(normalized) || "legal.reviewer".equals(normalized)) {
+            normalized = "sarah.legal";
+        } else if ("finance".equals(normalized) || "finance.manager".equals(normalized)) {
+            normalized = "marcus.finance";
+        } else if ("admin".equals(normalized) || "administrator".equals(normalized)) {
+            normalized = "elena.admin";
+        }
+        return Optional.ofNullable(personas.get(normalized));
     }
 
     public UserPersona getPersonaById(String id) {

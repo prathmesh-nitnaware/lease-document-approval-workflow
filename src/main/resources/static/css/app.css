@@ -227,7 +227,9 @@ a:hover {
 .app-navbar {
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 1050;
   box-shadow: var(--shadow-sm);
 }
 

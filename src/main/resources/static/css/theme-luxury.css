@@ -119,11 +119,19 @@ p, .hero-subtitle, .card-subtitle {
 
 /* ======================== NAVBAR ======================== */
 .app-navbar {
-  background: rgba(17, 17, 19, 0.8) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1050 !important;
+  background: rgba(17, 17, 19, 0.94) !important;
   backdrop-filter: blur(16px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.persona-dropdown, .notification-dropdown {
+  position: relative !important;
+  z-index: 1055 !important;
 }
 
 .navbar-brand {
@@ -169,22 +177,27 @@ p, .hero-subtitle, .card-subtitle {
 
 /* ======================== DROPDOWNS ======================== */
 .dropdown-menu, .persona-menu, .notification-menu {
-  background: rgba(20, 20, 22, 0.95) !important;
+  position: absolute !important;
+  z-index: 1070 !important;
+  background: #141416 !important;
   backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.04) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255,255,255,0.06) !important;
   border-radius: 12px !important;
 }
 
 .dropdown-item { color: #a1a1aa !important; transition: all 0.15s ease !important; }
 .dropdown-item:hover { background: rgba(124, 58, 237, 0.12) !important; color: #fafafa !important; }
-.dropdown-header { color: #71717a !important; }
-.active-persona-item { background: rgba(124, 58, 237, 0.15) !important; border-left: 2px solid #7c3aed !important; }
-.dropdown-divider { border-color: rgba(255, 255, 255, 0.06) !important; }
-hr.dropdown-divider { border-color: rgba(255, 255, 255, 0.06) !important; }
+.dropdown-header { color: #a1a1aa !important; }
+.active-persona-item { background: rgba(124, 58, 237, 0.18) !important; border-left: 2px solid #7c3aed !important; }
+.dropdown-divider { border-color: rgba(255, 255, 255, 0.08) !important; }
+hr.dropdown-divider { border-color: rgba(255, 255, 255, 0.08) !important; }
 
 /* ======================== CARDS ======================== */
 .card {
+  position: relative !important;
+  z-index: 1 !important;
   background: rgba(20, 20, 22, 0.7) !important;
   backdrop-filter: blur(8px) !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -666,18 +679,52 @@ hr.dropdown-divider { border-color: rgba(255, 255, 255, 0.06) !important; }
   color: #fafafa !important;
 }
 
-.persona-toggle-btn:hover, .persona-toggle-btn:focus {
-  background: rgba(124, 58, 237, 0.1) !important;
-  border-color: rgba(124, 58, 237, 0.3) !important;
+.persona-toggle-btn {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #fafafa !important;
+  transition: all 0.2s ease !important;
+}
+
+.persona-toggle-btn:hover, .persona-toggle-btn:focus, .persona-toggle-btn.show {
+  background: rgba(124, 58, 237, 0.15) !important;
+  border-color: rgba(124, 58, 237, 0.45) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.25) !important;
 }
 
 .persona-avatar-badge {
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3), 0 0 12px rgba(124, 58, 237, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4), 0 0 12px rgba(124, 58, 237, 0.25) !important;
 }
 
-.persona-menu .dropdown-item { color: #d4d4d8 !important; }
-.persona-menu .dropdown-item:hover { background: rgba(124, 58, 237, 0.12) !important; color: #fafafa !important; }
-.persona-menu .active-persona-item { background: rgba(124, 58, 237, 0.15) !important; border-left: 2px solid #7c3aed !important; }
+.persona-menu {
+  min-width: 300px !important;
+  background: #141416 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85) !important;
+}
+
+.persona-menu .dropdown-item {
+  color: #fafafa !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+.persona-menu .dropdown-item:hover,
+.persona-menu .dropdown-item:focus {
+  background: rgba(124, 58, 237, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.persona-menu .active-persona-item {
+  background: rgba(124, 58, 237, 0.22) !important;
+  border-left: 3px solid #a78bfa !important;
+}
+
+.persona-menu .text-dark,
+.persona-menu span.text-dark {
+  color: #fafafa !important;
+}
 
 /* ======================== LOGIN PAGE ======================== */
 .card .card-body .form-control { background: rgba(255, 255, 255, 0.04) !important; }

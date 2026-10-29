@@ -55,13 +55,13 @@ public class UiScreenshotCaptureTest extends BaseSeleniumTest {
         // 2. Login Page
         capturePage(baseUrl + "/login", "login");
 
-        // 3. Dashboard (as Sarah Jenkins, Legal Reviewer)
+        // 3. Dashboard (as Legal Reviewer)
         capturePage(baseUrl + "/quick-login?personaId=sarah.legal&redirectUrl=/dashboard", "dashboard");
 
-        // 4. Submit Request (as John Doe, Tenant)
+        // 4. Submit Request (as Prathmesh, Tenant)
         capturePage(baseUrl + "/quick-login?personaId=john.tenant&redirectUrl=/submit-request", "submit");
 
-        // 5. Reviewer Queue (as Sarah Jenkins, Legal Reviewer)
+        // 5. Reviewer Queue (as Legal Reviewer)
         capturePage(baseUrl + "/quick-login?personaId=sarah.legal&redirectUrl=/reviewer-queue", "reviewer-queue");
 
         // 6. Track Request Details

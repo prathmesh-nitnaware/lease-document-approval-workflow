@@ -45,7 +45,7 @@ public class LeaseRequestWebController {
     @GetMapping("/submit-request")
     public String showSubmissionForm(HttpSession session, Model model) {
         UserPersona current = personaService.getCurrentPersona(session);
-        String defaultRequesterId = current != null && current.isTenant() ? current.getId() : "";
+        String defaultRequesterId = current != null && current.isTenant() ? current.getDisplayName() : "";
         model.addAttribute("requesterId", defaultRequesterId);
         model.addAttribute("leaseType", "");
         return "submit-request";

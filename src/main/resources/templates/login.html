@@ -59,7 +59,7 @@
                                     <label for="username" class="form-label small fw-semibold">Username / Corporate ID</label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text"><i class="bi bi-person" style="color: #a78bfa;"></i></span>
-                                        <input type="text" id="username" name="username" class="form-control" placeholder="e.g. sarah.legal" required autofocus>
+                                        <input type="text" id="username" name="username" class="form-control" placeholder="e.g. prathmesh or admin" required autofocus>
                                     </div>
                                 </div>
 
@@ -100,9 +100,9 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <span class="persona-avatar-badge rounded-circle text-white fw-bold d-flex align-items-center justify-content-center"
                                           th:style="'width: 40px; height: 40px; font-size: 0.8rem; background-color:' + ${p.role.themeColor}"
-                                          th:text="${p.avatarInitials}">JD</span>
+                                          th:text="${p.avatarInitials}">PN</span>
                                     <div>
-                                        <div class="fw-semibold small" style="color: #fafafa;" th:text="${p.displayName}">John Doe</div>
+                                        <div class="fw-semibold small" style="color: #fafafa;" th:text="${p.displayName}">Prathmesh</div>
                                         <div style="font-size: 0.75rem; color: #a1a1aa;" th:text="${p.role.displayName}">Tenant</div>
                                     </div>
                                 </div>

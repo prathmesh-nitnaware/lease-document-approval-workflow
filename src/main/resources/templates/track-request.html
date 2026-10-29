@@ -65,7 +65,7 @@
                              th:style="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35);' : (request.status == 'SUBMITTED' or request.status == 'UNDER_REVIEW' ? 'background: rgba(124, 58, 237, 0.18); border: 1px solid rgba(124, 58, 237, 0.5); box-shadow: 0 0 16px rgba(124, 58, 237, 0.25);' : 'background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);')}">
                             <i th:class="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success fs-5' : 'bi bi-shield-check text-primary fs-5'}"></i>
                             <div class="fw-bold mt-1" th:style="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'color: #6ee7b7;' : (request.status == 'SUBMITTED' or request.status == 'UNDER_REVIEW' ? 'color: #fafafa;' : 'color: #a1a1aa;')}">2. Legal Review</div>
-                            <div style="font-size: 0.72rem;" th:style="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'color: #34d399;' : (request.status == 'SUBMITTED' or request.status == 'UNDER_REVIEW' ? 'color: #c084fc;' : 'color: #71717a;')}" th:text="${request.legalReviewer != null ? request.legalReviewer : 'Sarah Jenkins'}">Sarah Jenkins</div>
+                            <div style="font-size: 0.72rem;" th:style="${request.status == 'LEGAL_APPROVED' or request.status == 'APPROVED' ? 'color: #34d399;' : (request.status == 'SUBMITTED' or request.status == 'UNDER_REVIEW' ? 'color: #c084fc;' : 'color: #71717a;')}" th:text="${request.legalReviewer != null ? request.legalReviewer : 'Legal Reviewer'}">Legal Reviewer</div>
                         </div>
                         <div style="color: #71717a; font-weight: bold;">&rarr;</div>
                         <!-- Step 3: Finance Audit -->
@@ -73,7 +73,7 @@
                              th:style="${request.status == 'APPROVED' ? 'background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35);' : (request.status == 'LEGAL_APPROVED' or request.status == 'FINANCE_REVIEW' ? 'background: rgba(124, 58, 237, 0.18); border: 1px solid rgba(124, 58, 237, 0.5); box-shadow: 0 0 16px rgba(124, 58, 237, 0.25);' : 'background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);')}">
                             <i th:class="${request.status == 'APPROVED' ? 'bi bi-check-circle-fill text-success fs-5' : 'bi bi-cash-stack text-primary fs-5'}"></i>
                             <div class="fw-bold mt-1" th:style="${request.status == 'APPROVED' ? 'color: #6ee7b7;' : (request.status == 'LEGAL_APPROVED' or request.status == 'FINANCE_REVIEW' ? 'color: #fafafa;' : 'color: #a1a1aa;')}">3. Finance Audit</div>
-                            <div style="font-size: 0.72rem;" th:style="${request.status == 'APPROVED' ? 'color: #34d399;' : (request.status == 'LEGAL_APPROVED' or request.status == 'FINANCE_REVIEW' ? 'color: #c084fc;' : 'color: #71717a;')}" th:text="${request.financeReviewer != null ? request.financeReviewer : 'Marcus Vance'}">Marcus Vance</div>
+                            <div style="font-size: 0.72rem;" th:style="${request.status == 'APPROVED' ? 'color: #34d399;' : (request.status == 'LEGAL_APPROVED' or request.status == 'FINANCE_REVIEW' ? 'color: #c084fc;' : 'color: #71717a;')}" th:text="${request.financeReviewer != null ? request.financeReviewer : 'Finance Manager'}">Finance Manager</div>
                         </div>
                         <div style="color: #71717a; font-weight: bold;">&rarr;</div>
                         <!-- Step 4: Final Sign-off -->
@@ -113,44 +113,125 @@
 
                 <!-- AI Document Intelligence Card -->
                 <div th:if="${aiAnalysis != null}" class="ai-intelligence-card p-4 rounded-3 mb-4"
-                     style="background: linear-gradient(145deg, rgba(124, 58, 237, 0.08) 0%, rgba(6, 182, 212, 0.04) 100%); border: 1px solid rgba(124, 58, 237, 0.25); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="p-2 rounded-2" style="background: rgba(124, 58, 237, 0.2); color: #c084fc;">
-                                <i class="bi bi-robot fs-5"></i>
+                     style="background: linear-gradient(145deg, rgba(124, 58, 237, 0.10) 0%, rgba(6, 182, 212, 0.05) 100%); border: 1px solid rgba(124, 58, 237, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);">
+                    
+                    <!-- Header with Score Bar -->
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="p-2 rounded-3" style="background: rgba(124, 58, 237, 0.25); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3);">
+                                <i class="bi bi-cpu fs-4"></i>
                             </span>
                             <div>
-                                <h6 class="mb-0 fw-bold" style="color: #fafafa;">Document Intelligence &amp; Term Extraction</h6>
-                                <small style="color: #a1a1aa;">Automated OCR and covenant discrepancy analysis</small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <h6 class="mb-0 fw-bold" style="color: #fafafa; font-size: 1.05rem;">AI Document Intelligence &amp; Covenant Engine</h6>
+                                    <span class="badge rounded-pill" style="background: rgba(124, 58, 237, 0.3); color: #e9d5ff; font-size: 0.65rem; border: 1px solid rgba(192, 132, 252, 0.4);">
+                                        NLP v2.4 Active
+                                    </span>
+                                </div>
+                                <small style="color: #a1a1aa;">Automated OCR term extraction, legal clause discovery, and multi-factor compliance rating</small>
                             </div>
                         </div>
-                        <span class="badge"
-                              th:classappend="${aiAnalysis.riskLevel == 'LOW' ? 'bg-success' : (aiAnalysis.riskLevel == 'MEDIUM' ? 'bg-warning text-dark' : 'bg-danger')}"
-                              th:text="'RISK ASSESSMENT: ' + ${aiAnalysis.riskLevel}"
-                              style="font-size: 0.75rem; letter-spacing: 0.05em; padding: 6px 12px; font-weight: 700;">
-                            RISK ASSESSMENT: LOW
-                        </span>
+
+                        <!-- Score Widget -->
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="text-end">
+                                <div class="small fw-semibold" style="color: #a1a1aa; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;">Compliance Rating</div>
+                                <div class="fw-bold" style="font-size: 1.25rem; font-family: monospace;"
+                                     th:styleappend="${aiAnalysis.complianceScore >= 80 ? 'color: #4ade80;' : (aiAnalysis.complianceScore >= 55 ? 'color: #fbbf24;' : 'color: #f87171;')}"
+                                     th:text="${aiAnalysis.complianceScore} + '/100'">
+                                    92/100
+                                </div>
+                            </div>
+                            <span class="badge"
+                                  th:classappend="${aiAnalysis.riskLevel == 'LOW' ? 'bg-success' : (aiAnalysis.riskLevel == 'MEDIUM' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                  th:text="'RISK: ' + ${aiAnalysis.riskLevel}"
+                                  style="font-size: 0.78rem; letter-spacing: 0.06em; padding: 7px 14px; font-weight: 700; border-radius: 8px;">
+                                RISK: LOW
+                            </span>
+                        </div>
                     </div>
 
-                    <!-- Extracted Terms Metrics -->
+                    <!-- Visual Compliance Progress Bar -->
+                    <div class="mb-3">
+                        <div class="progress" style="height: 6px; background-color: rgba(255, 255, 255, 0.08); border-radius: 999px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 th:style="'width: ' + ${aiAnalysis.complianceScore} + '%;'"
+                                 th:classappend="${aiAnalysis.complianceScore >= 80 ? 'bg-success' : (aiAnalysis.complianceScore >= 55 ? 'bg-warning' : 'bg-danger')}"
+                                 th:aria-valuenow="${aiAnalysis.complianceScore}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Extracted Terms 6-Point Metrics Grid -->
                     <div class="row g-2 mb-3 text-center">
-                        <div class="col-4">
-                            <div class="p-2 rounded-2" style="background: rgba(20, 20, 22, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.8rem;">
-                                <div class="small" style="color: #a1a1aa;">Extracted Rent</div>
-                                <strong class="fs-6" style="color: #a78bfa;" th:text="${aiAnalysis.extractedRent}">$2,500.00</strong>
+                        <div class="col-6 col-md-2">
+                            <div class="p-2 rounded-2 h-100" style="background: rgba(20, 20, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.07);">
+                                <div class="small text-truncate" style="color: #a1a1aa; font-size: 0.72rem;">Monthly Base Rent</div>
+                                <strong class="fs-6 text-truncate d-block" style="color: #a78bfa;" th:text="${aiAnalysis.extractedRent}">$2,500.00</strong>
                             </div>
                         </div>
-                        <div class="col-4">
-                            <div class="p-2 rounded-2" style="background: rgba(20, 20, 22, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.8rem;">
-                                <div class="small" style="color: #a1a1aa;">Security Deposit</div>
-                                <strong class="fs-6" style="color: #a78bfa;" th:text="${aiAnalysis.extractedDeposit}">$5,000.00</strong>
+                        <div class="col-6 col-md-2">
+                            <div class="p-2 rounded-2 h-100" style="background: rgba(20, 20, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.07);">
+                                <div class="small text-truncate" style="color: #a1a1aa; font-size: 0.72rem;">Security Deposit</div>
+                                <strong class="fs-6 text-truncate d-block" style="color: #a78bfa;" th:text="${aiAnalysis.extractedDeposit}">$5,000.00</strong>
                             </div>
                         </div>
-                        <div class="col-4">
-                            <div class="p-2 rounded-2" style="background: rgba(20, 20, 22, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.8rem;">
-                                <div class="small" style="color: #a1a1aa;">Detected Duration</div>
-                                <strong class="fs-6" style="color: #38bdf8;" th:text="${aiAnalysis.extractedTerm}">24 Months</strong>
+                        <div class="col-6 col-md-2">
+                            <div class="p-2 rounded-2 h-100" style="background: rgba(20, 20, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.07);">
+                                <div class="small text-truncate" style="color: #a1a1aa; font-size: 0.72rem;">Detected Term</div>
+                                <strong class="fs-6 text-truncate d-block" style="color: #38bdf8;" th:text="${aiAnalysis.extractedTerm}">24 Months</strong>
                             </div>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <div class="p-2 rounded-2 h-100" style="background: rgba(20, 20, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.07);">
+                                <div class="small text-truncate" style="color: #a1a1aa; font-size: 0.72rem;">Governing Law</div>
+                                <strong class="fs-6 text-truncate d-block" style="color: #67e8f9;" th:text="${aiAnalysis.governingLaw != null ? aiAnalysis.governingLaw : 'Jurisdiction of Record'}">New York</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <div class="p-2 rounded-2 h-100" style="background: rgba(20, 20, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.07);">
+                                <div class="small text-truncate" style="color: #a1a1aa; font-size: 0.72rem;">Notice Period</div>
+                                <strong class="fs-6 text-truncate d-block" style="color: #38bdf8;" th:text="${aiAnalysis.terminationNotice != null ? aiAnalysis.terminationNotice : '30 Days'}">60 Days</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <div class="p-2 rounded-2 h-100" style="background: rgba(20, 20, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.07);">
+                                <div class="small text-truncate" style="color: #a1a1aa; font-size: 0.72rem;">Subleasing Rights</div>
+                                <strong class="fs-6 text-truncate d-block" style="color: #cbd5e1;" th:text="${aiAnalysis.subleasingTerms != null ? aiAnalysis.subleasingTerms : 'Consent Req.'}">Consent Req.</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clause Intelligence Table -->
+                    <div th:if="${aiAnalysis.clauses != null and !aiAnalysis.clauses.empty}" class="mb-3">
+                        <div class="table-responsive rounded-2" style="border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(15, 17, 23, 0.7);">
+                            <table class="table table-sm table-dark table-hover mb-0 align-middle" style="font-size: 0.78rem;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.12); color: #94a3b8; font-size: 0.72rem; text-transform: uppercase;">
+                                        <th class="ps-3 py-2">Category</th>
+                                        <th class="py-2">Covenant / Clause</th>
+                                        <th class="py-2">Detected Provision</th>
+                                        <th class="py-2">Review Status</th>
+                                        <th class="pe-3 py-2">Guidance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="c : ${aiAnalysis.clauses}">
+                                        <td class="ps-3 py-2 text-muted" th:text="${c.category}">Legal Risk</td>
+                                        <td class="py-2 fw-semibold text-light" th:text="${c.clauseName}">Indemnification</td>
+                                        <td class="py-2 font-monospace" style="color: #a5f3fc;" th:text="${c.detectedValue}">Hold Harmless Clause Present</td>
+                                        <td class="py-2">
+                                            <span class="badge"
+                                                  th:classappend="${c.status == 'COMPLIANT' ? 'bg-success' : (c.status == 'WARNING' ? 'bg-warning text-dark' : 'bg-danger')}"
+                                                  th:text="${c.status}"
+                                                  style="font-size: 0.65rem; padding: 3px 7px;">
+                                                COMPLIANT
+                                            </span>
+                                        </td>
+                                        <td class="pe-3 py-2 text-muted" th:text="${c.guidanceNote}">Verified against policy.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -201,7 +282,7 @@
                             <small style="color: #71717a;" th:text="${#temporals.format(ann.createdAt, 'yyyy-MM-dd HH:mm')}">2026-10-21</small>
                         </div>
                         <p class="mb-1 small" style="color: #e4e4e7;" th:text="${ann.noteText}">Note content</p>
-                        <small style="font-size: 0.72rem; color: #a1a1aa;">Annotated by: <span class="fw-semibold" style="color: #a78bfa;" th:text="${ann.reviewerName}">Sarah Jenkins</span></small>
+                        <small style="font-size: 0.72rem; color: #a1a1aa;">Annotated by: <span class="fw-semibold" style="color: #a78bfa;" th:text="${ann.reviewerName != null ? ann.reviewerName : 'Reviewer'}">Reviewer</span></small>
                     </div>
 
                     <!-- Reviewer Inline Annotation Form -->
